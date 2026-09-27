@@ -2,9 +2,9 @@
 # The account's OIDC provider for token.actions.githubusercontent.com is created once, by
 # mvp-api's infra/bootstrap; this stack only looks it up.
 #
-# - deploy: the CD workflow (push to main, `production` environment). Uploads dist/ to
-#   the bucket and invalidates the distribution; nothing else. The infrastructure itself
-#   is applied locally.
+# - deploy: the CD workflow (push to main, `production` environment). Reads landing/* and
+#   web/url from SSM, uploads dist/ to the bucket and invalidates the distribution;
+#   nothing else. The infrastructure itself is applied locally.
 # - plan: the Terraform workflow (pull requests that touch infra/). Read-only, plus this
 #   stack's state and its lock file.
 #
@@ -73,6 +73,15 @@ resource "aws_iam_role" "github_deploy" {
 }
 
 data "aws_iam_policy_document" "github_deploy" {
+  # Where to deploy (landing/*) and the web app's URL (web/url, written by mvp-web).
+  statement {
+    actions = ["ssm:GetParameter", "ssm:GetParameters"]
+    resources = [
+      "arn:aws:ssm:${var.region}:*:parameter${local.ssm_prefix}/landing/*",
+      "arn:aws:ssm:${var.region}:*:parameter${local.ssm_prefix}/web/url",
+    ]
+  }
+
   statement {
     actions   = ["s3:ListBucket"]
     resources = [aws_s3_bucket.landing.arn]

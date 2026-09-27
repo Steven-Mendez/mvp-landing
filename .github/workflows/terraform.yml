@@ -34,10 +34,16 @@ jobs:
         with:
           terraform_version: 1.15.4
           terraform_wrapper: false
+      # The stack's region, where its state bucket and SSM parameters live.
+      - name: Read the region from the prod tfvars
+        id: settings
+        run: |
+          region="$(sed -n 's/^region *= *"\(.*\)"/\1/p' infra/envs/prod/prod.tfvars)"
+          echo "region=${region:-us-east-1}" >> "$GITHUB_OUTPUT"
       - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
         with:
           role-to-assume: ${{ vars.AWS_TERRAFORM_PLAN_ROLE_ARN }}
-          aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
+          aws-region: ${{ steps.settings.outputs.region }}
 
       - run: cp infra/backend.tf.example infra/backend.tf
       - name: Init

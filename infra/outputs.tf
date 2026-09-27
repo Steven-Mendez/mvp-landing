@@ -21,17 +21,11 @@ output "landing_url_parameter" {
   value       = aws_ssm_parameter.landing_url.name
 }
 
-# Copy these into the GitHub `production` environment (Settings → Environments) for the
-# CD workflow; the plan role goes into the repository variable AWS_TERRAFORM_PLAN_ROLE_ARN.
-output "github_environment_variables" {
-  description = "Variables of the GitHub environment the CD workflow deploys from."
-  value = {
-    AWS_DEPLOY_ROLE_ARN        = one(aws_iam_role.github_deploy[*].arn)
-    AWS_REGION                 = var.region
-    LANDING_BUCKET             = aws_s3_bucket.landing.bucket
-    CLOUDFRONT_DISTRIBUTION_ID = aws_cloudfront_distribution.landing.id
-    PUBLIC_SITE_URL            = local.landing_url
-  }
+# The CD workflow reads everything else from SSM (landing/*, web/url) and the project and
+# region from envs/<env>/<env>.tfvars: these are the only values GitHub needs.
+output "github_deploy_role_arn" {
+  description = "Variable AWS_DEPLOY_ROLE_ARN of the GitHub environment the CD workflow deploys from."
+  value       = one(aws_iam_role.github_deploy[*].arn)
 }
 
 output "terraform_plan_role_arn" {

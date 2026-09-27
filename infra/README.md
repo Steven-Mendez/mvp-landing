@@ -11,7 +11,7 @@ No workflow applies this stack; you apply it locally. GitHub Actions only checks
 | --------------- | --------------------------------------------------------------------------------- |
 | `ci.yml`        | `fmt`, `validate`, `tflint` and an offline plan of every environment (no account) |
 | `terraform.yml` | the real prod plan, as a comment on pull requests that touch `infra/`             |
-| `cd.yml`        | nothing: it uploads `dist/` to the bucket and invalidates the cache               |
+| `cd.yml`        | reads `landing/*` from SSM, uploads `dist/` and invalidates the cache             |
 
 ## Files
 
@@ -20,9 +20,8 @@ No workflow applies this stack; you apply it locally. GitHub Actions only checks
 | `main.tf`                                           | the bucket (readable by CloudFront only), the distribution, the 404 page, security headers   |
 | `functions/viewer_request.js`                       | CloudFront Function: `/foo/` → `/foo/index.html`, `www.<domain>` → `<domain>` (301)          |
 | `dns.tf`                                            | with `enable_dns`: ACM certificate for `<domain>` + `www.<domain>` and the alias records     |
-| `ssm.tf`                                            | reads the core stack's DNS parameters, writes `landing/url`                                  |
+| `ssm.tf`                                            | reads the core stack's DNS parameters, writes `landing/*` (the URL and the deploy targets)   |
 | `github_oidc.tf`                                    | with `github_repository`: the roles GitHub Actions assumes (deploy and plan)                 |
-| `scripts/github-variables.sh`                       | sets the GitHub Actions variables from the outputs                                           |
 | `variables.tf`, `locals.tf`, `outputs.tf`           | inputs, names and URLs, outputs                                                              |
 | `versions.tf`, `providers.tf`, `backend.tf.example` | pinned providers (`hashicorp/aws ~> 6.66`) and the S3 backend with `use_lockfile`            |
 | `envs/<env>/<env>.tfvars`, `envs/<env>/backend.hcl` | values and state key (`mvp-landing/<env>/terraform.tfstate`) for `dev`, `staging` and `prod` |
@@ -65,24 +64,27 @@ the state bucket come from `mvp-api/infra/bootstrap`.
    the roles trust only the name-only form. Leave out every `-var` flag to apply without
    the GitHub roles (no CD).
 
-2. **Set the GitHub variables** from the stack's outputs. Nothing about your account is
-   committed; the workflows read it all from these variables:
+2. **Set the GitHub variables.** AWS is the source of truth: the stack writes the bucket,
+   the distribution and the URLs to SSM, and CD reads them there (and the project and
+   region from `envs/prod/prod.tfvars`). GitHub only holds the two roles and the state
+   bucket, which rarely change:
 
    ```sh
-   infra/scripts/github-variables.sh <PUBLIC_APP_URL> [PUBLIC_REPOSITORY_URL]
+   gh variable set AWS_DEPLOY_ROLE_ARN --env production \
+     --body "$(terraform -chdir=infra output -raw github_deploy_role_arn)"
+   gh variable set AWS_TERRAFORM_PLAN_ROLE_ARN \
+     --body "$(terraform -chdir=infra output -raw terraform_plan_role_arn)"
+   gh variable set TF_STATE_BUCKET --body "$BUCKET"
    ```
 
-   `PUBLIC_APP_URL` is the web app's URL (`web/url` in SSM). Until the web app exists, use
-   this site's own URL: its "Sign in" and "Try it now" links show the 404 page meanwhile.
-   Run the script again whenever a value changes (a new domain, the web app's real URL).
+   Optionally, `PUBLIC_REPOSITORY_URL` on the `production` environment shows a "Get the
+   source" link. In Settings → Environments → `production`, restrict deployments to `main`.
+   The Terraform workflow skips its plan until `AWS_TERRAFORM_PLAN_ROLE_ARN` exists.
 
-   | Where                      | Variable                                                                                        |
-   | -------------------------- | ----------------------------------------------------------------------------------------------- |
-   | environment `production`   | `AWS_DEPLOY_ROLE_ARN`, `AWS_REGION`, `LANDING_BUCKET`, `CLOUDFRONT_DISTRIBUTION_ID`, `PUBLIC_SITE_URL`, `PUBLIC_APP_URL`, `PUBLIC_REPOSITORY_URL` (optional) |
-   | repository                 | `AWS_TERRAFORM_PLAN_ROLE_ARN`, `TF_STATE_BUCKET`, `AWS_REGION`                                  |
+   The web app's URL comes from `web/url`, which mvp-web writes. Until it exists, CD warns
+   and points "Sign in" and "Try it now" at this site (its 404 page) instead of localhost;
+   the next deploy after mvp-web's picks up the real URL.
 
-   The script also restricts the `production` environment to `main`. The Terraform
-   workflow skips its plan until `AWS_TERRAFORM_PLAN_ROLE_ARN` exists.
 3. **Without DNS**, run the web deploy again. It reads this site's URL from `landing/url`,
    which exists only after this first apply.
 
@@ -96,7 +98,9 @@ All values are `String` parameters under `/<project_name>/<environment>/`.
 | Parameter                                  | Direction                    | Used for                                                                             |
 | ------------------------------------------ | ---------------------------- | ------------------------------------------------------------------------------------ |
 | `core/domain_name`, `core/route53_zone_id` | read, only with `enable_dns` | `<domain>`. If either is missing, the plan fails and says to deploy mvp-api with DNS |
-| `landing/url`                              | **written**                  | the web deploy's `VITE_LANDING_URL` when it has no `LANDING_URL` variable            |
+| `landing/url`                              | **written**                  | the web deploy's `VITE_LANDING_URL` when it has no `LANDING_URL` variable; `PUBLIC_SITE_URL` of this site's CD |
+| `landing/bucket`, `landing/distribution_id` | **written**                 | where this site's CD uploads and what it invalidates                                  |
+| `web/url`                                  | read by CD                   | `PUBLIC_APP_URL` (falls back to this site's URL while mvp-web is not deployed)       |
 
 DNS: the core stack owns the hosted zone and the API record, and the web stack owns
 `app.<domain>`. This stack owns the certificate and records for `<domain>` and
@@ -106,7 +110,7 @@ DNS: the core stack owns the hosted zone and the API record, and the web stack o
 
 | Role                                    | Who assumes it                                   | What it can do                                                                                              |
 | --------------------------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
-| `<project>-<env>-landing-github-deploy` | the CD job, only in the `production` environment | sync the bucket, invalidate the distribution                                                                |
+| `<project>-<env>-landing-github-deploy` | the CD job, only in the `production` environment | read `landing/*` and `web/url` in SSM, sync the bucket, invalidate the distribution                        |
 | `<project>-<env>-landing-github-plan`   | pull request jobs                                | read everything (`ReadOnlyAccess`) except other objects in S3, read this stack's state, write its lock file |
 
 The plan role can't read other stacks' state, which holds secrets.

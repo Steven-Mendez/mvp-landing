@@ -1,7 +1,8 @@
 # The cross-repo contract (SPLIT-CONTRACT): the core stack in mvp-api writes String
 # parameters under /<project_name>/<environment>/core/; this stack reads the DNS ones
-# (with enable_dns only) and writes landing/url, which the web deploy reads for
-# VITE_LANDING_URL when there is no custom domain.
+# (with enable_dns only) and writes landing/*: the URL, which the web deploy reads for
+# VITE_LANDING_URL when there is no custom domain, and what the CD workflow deploys to.
+# AWS is the only source of truth: GitHub holds no copy of these values.
 #
 # Under offline_validation nothing is read: placeholder values stand in, so the offline
 # plan runs with no AWS account.
@@ -43,4 +44,19 @@ resource "aws_ssm_parameter" "landing_url" {
   description = "The landing site's public URL (written by the mvp-landing stack)."
   type        = "String"
   value       = local.landing_url
+}
+
+# Read by the CD workflow: where it uploads dist/ and what it invalidates.
+resource "aws_ssm_parameter" "landing_bucket" {
+  name        = "${local.ssm_prefix}/landing/bucket"
+  description = "The bucket the landing's CD uploads dist/ to (written by the mvp-landing stack)."
+  type        = "String"
+  value       = aws_s3_bucket.landing.bucket
+}
+
+resource "aws_ssm_parameter" "landing_distribution_id" {
+  name        = "${local.ssm_prefix}/landing/distribution_id"
+  description = "The distribution the landing's CD invalidates (written by the mvp-landing stack)."
+  type        = "String"
+  value       = aws_cloudfront_distribution.landing.id
 }
