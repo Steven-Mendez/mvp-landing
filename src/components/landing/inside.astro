@@ -1,0 +1,87 @@
+---
+import CircleCheck from "@lucide/astro/icons/circle-check"
+import Image from "@lucide/astro/icons/image"
+import Palette from "@lucide/astro/icons/palette"
+import RefreshCw from "@lucide/astro/icons/refresh-cw"
+import Server from "@lucide/astro/icons/server"
+import Users from "@lucide/astro/icons/users"
+
+/** Only what the repository actually ships; keep in step with the code. */
+const inside = [
+  {
+    icon: Server,
+    title: "One API, every platform",
+    description:
+      "FastAPI, with a TypeScript client generated in each of the apps.",
+  },
+  {
+    icon: Users,
+    title: "Accounts and teams",
+    description:
+      "Cognito sign-in, password reset, workspaces, roles and invitations.",
+  },
+  {
+    icon: RefreshCw,
+    title: "Realtime refresh",
+    description: "A change on one device shows up on the others.",
+  },
+  {
+    icon: Image,
+    title: "Media and jobs",
+    description: "Image uploads with thumbnails and a background worker.",
+  },
+  {
+    icon: Palette,
+    title: "Light and dark, everywhere",
+    description: "Web and native apps keep matching token files.",
+  },
+  {
+    icon: CircleCheck,
+    title: "Ready to ship",
+    description: "Tests and CI on every change; a manual deploy per repo.",
+  },
+]
+---
+
+<section
+  id="inside"
+  aria-labelledby="inside-heading"
+  class="landing-section scroll-mt-10"
+>
+  <div class="landing-section-intro" data-reveal="true">
+    <h2 id="inside-heading" class="landing-section-heading">
+      The unglamorous parts,
+      <br />
+      already done.
+    </h2>
+    <p class="max-w-sm text-muted-foreground leading-relaxed">
+      Everything a real product needs before its first feature, built into
+      the API, the web app and the mobile app.
+    </p>
+  </div>
+  <ul class="landing-inside-grid">
+    {
+      inside.map(({ icon: Icon, title, description }, index) => (
+        <li data-reveal="true" data-reveal-delay={(index % 3) * 80}>
+          <Icon aria-hidden="true" />
+          <h3 class="mt-4 font-medium">{title}</h3>
+          <p class="mt-2 text-muted-foreground text-sm leading-relaxed">
+            {description}
+          </p>
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<style>
+  .landing-inside-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2.5rem 2rem; }
+  .landing-inside-grid li { border-top: 1px solid var(--border); padding-top: 1.5rem; }
+  .landing-inside-grid :global(svg) { width: 1.25rem; height: 1.25rem; color: var(--primary); }
+  @media (max-width: 1023px) {
+    .landing-inside-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 639px) {
+    .landing-inside-grid { grid-template-columns: 1fr; gap: 2rem; }
+  }
+</style>

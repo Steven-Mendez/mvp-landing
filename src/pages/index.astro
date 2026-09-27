@@ -1,0 +1,14 @@
+---
+import LandingPage from "@/components/landing/landing-page.astro"
+import NoticeCheck from "@/components/notices/notice-check.astro"
+import RootLayout from "@/layouts/root-layout.astro"
+import { pageTitle, site } from "@/site"
+---
+
+<RootLayout
+  title={pageTitle(site.tagline)}
+  description={site.description}
+>
+  <LandingPage />
+  <NoticeCheck />
+</RootLayout>

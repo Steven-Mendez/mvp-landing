@@ -1,0 +1,45 @@
+---
+import Closing from "./closing.astro"
+import Example from "./example.astro"
+import Faq from "./faq.astro"
+import Footer from "./footer.astro"
+import Header from "./header.astro"
+import Hero from "./hero.astro"
+import HowItWorks from "./how-it-works.astro"
+import Inside from "./inside.astro"
+import Testimonials from "./testimonials.astro"
+---
+
+<div class="landing-page">
+  <a
+    href="/#main-content"
+    class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-lg focus:bg-card focus:p-4 focus:text-primary"
+  >
+    Skip to main content
+  </a>
+  <Header />
+  <main id="main-content" tabindex="-1" class="outline-none">
+    <Hero />
+    <Inside />
+    <Example />
+    <HowItWorks />
+    <Testimonials />
+    <div class="landing-section landing-faq-section" data-reveal="true">
+      <Faq />
+    </div>
+    <Closing />
+  </main>
+  <Footer />
+</div>
+
+
+<style>
+  .landing-faq-section { padding-top: 0; padding-bottom: 4rem; }
+</style>
+
+<script>
+  import { startLandingMotion } from "@/scripts/landing-motion"
+
+  const page = document.querySelector<HTMLElement>(".landing-page")
+  if (page) startLandingMotion(page)
+</script>

@@ -1,0 +1,84 @@
+---
+import Plus from "@lucide/astro/icons/plus"
+import { buttonLink } from "@/lib/button-classes"
+import { site } from "@/site"
+
+const questions = [
+  {
+    question: `What is ${site.name}?`,
+    answer:
+      "Four repositories for a product on the web, iOS and Android: a FastAPI API, a TanStack Start web app, an Expo mobile app and an Astro landing, with accounts, team workspaces and a complete example feature already working.",
+  },
+  {
+    question: "Is the product catalog part of my product?",
+    answer:
+      "Only if you want it to be. It’s an example that shows how one feature flows through the database, the API and the client generated in each app. Keep it as a reference or remove it once your own feature is in.",
+  },
+  {
+    question: "Do I have to ship the mobile app?",
+    answer:
+      "No. The web and mobile apps are separate clients of the same API, so you can launch on the web first and release on iOS and Android when you’re ready.",
+  },
+  {
+    question: "What does it cost?",
+    answer:
+      "The kit is open source under the MIT license. You only pay for the infrastructure you run it on.",
+  },
+  {
+    question: "Can I try it before I use it?",
+    answer:
+      "Yes. The live version is the kit itself: create an account and you’ll go through the same sign-up and onboarding your users will. The products on this page are sample data.",
+  },
+]
+
+// Native disclosures: the ghost button look on a <summary>, open state from `details[open]`.
+const trigger = buttonLink({
+  variant: "ghost",
+  className:
+    "landing-faq-trigger h-auto cursor-default min-h-12 w-full justify-between gap-5 whitespace-normal rounded-none px-0 py-5 text-left hover:bg-transparent hover:text-primary in-open:text-primary dark:hover:bg-transparent",
+})
+---
+
+<section
+  id="questions"
+  aria-labelledby="questions-heading"
+  class="grid scroll-mt-8 gap-8 pb-8 md:grid-cols-5 md:gap-16"
+>
+  <div class="md:col-span-2">
+    <h2 id="questions-heading" class="font-medium text-3xl tracking-tight">
+      Good questions.
+    </h2>
+    <p class="mt-4 text-muted-foreground leading-relaxed">
+      What people ask before they start building.
+    </p>
+  </div>
+  <div class="divide-y border-y md:col-span-3">
+    {
+      questions.map(({ question, answer }) => (
+        <details class="landing-faq-item">
+          <summary {...trigger}>
+            <h3>{question}</h3>
+            <span class="landing-faq-icon" aria-hidden="true">
+              <Plus class="size-4" />
+            </span>
+          </summary>
+          <p class="landing-faq-answer max-w-xl pr-10 pb-6 text-muted-foreground text-sm leading-relaxed">
+            {answer}
+          </p>
+        </details>
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  .landing-faq-icon { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 2rem; height: 2rem; border-radius: 50%; border: 1px solid var(--border); }
+  .landing-faq-trigger { list-style: none; }
+  .landing-faq-trigger::-webkit-details-marker { display: none; }
+  .landing-faq-item[open] .landing-faq-icon { background: var(--accent); border-color: transparent; transform: rotate(45deg); }
+  @media (prefers-reduced-motion: no-preference) {
+    .landing-faq-icon { transition: transform 240ms cubic-bezier(.23,1,.32,1); }
+    .landing-faq-item[open] .landing-faq-answer { animation: landing-answer 250ms cubic-bezier(.23,1,.32,1); }
+    @keyframes landing-answer { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+  }
+</style>

@@ -1,0 +1,94 @@
+# Continuous deployment: every push to main passes CI and publishes dist/ to the landing
+# bucket, then invalidates CloudFront. The infrastructure (infra/) is applied locally; this
+# workflow only holds the deploy role from infra/github_oidc.tf, which can do nothing else.
+# Order across repositories: api → web → landing (docs in infra/README.md).
+name: CD
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deploy at a time; a newer push waits instead of cancelling a half-uploaded one.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    name: Deploy to production
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: ${{ vars.PUBLIC_SITE_URL }}
+    permissions:
+      contents: read
+      id-token: write # OIDC: assume the deploy role without stored AWS keys
+    # Everything that belongs to one AWS account comes from the environment's variables
+    # (`terraform output github_environment_variables`); the repository names none of it.
+    env:
+      AWS_DEPLOY_ROLE_ARN: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      LANDING_BUCKET: ${{ vars.LANDING_BUCKET }}
+      CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
+      PUBLIC_SITE_URL: ${{ vars.PUBLIC_SITE_URL }}
+      PUBLIC_APP_URL: ${{ vars.PUBLIC_APP_URL }}
+      PUBLIC_REPOSITORY_URL: ${{ vars.PUBLIC_REPOSITORY_URL }}
+    steps:
+      - name: Check the environment is set up (infra/README.md)
+        run: |
+          missing=0
+          for name in AWS_DEPLOY_ROLE_ARN AWS_REGION LANDING_BUCKET CLOUDFRONT_DISTRIBUTION_ID PUBLIC_SITE_URL PUBLIC_APP_URL; do
+            if [ -z "$(printenv "$name")" ]; then
+              echo "::error::Variable $name is not set on the 'production' environment (see infra/README.md)"
+              missing=1
+            fi
+          done
+          exit "$missing"
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          version: 11
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # The PUBLIC_* values are baked into the HTML here.
+      - run: pnpm build
+
+      - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ env.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Hashed assets first and cached for a year, so no new page ever points at a missing
+      # file; old ones stay for pages still open. Then everything else, revalidated on
+      # every request, and whatever the build no longer produces is deleted.
+      - name: Upload
+        run: |
+          aws s3 sync dist/_astro "s3://$LANDING_BUCKET/_astro" \
+            --cache-control "public, max-age=31536000, immutable"
+          aws s3 sync dist "s3://$LANDING_BUCKET" --delete --exclude "_astro/*" \
+            --cache-control "public, max-age=0, must-revalidate"
+
+      - name: Invalidate CloudFront
+        run: |
+          id=$(aws cloudfront create-invalidation --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" \
+            --paths "/*" --query Invalidation.Id --output text)
+          aws cloudfront wait invalidation-completed --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" --id "$id"
+
+      - name: Smoke test
+        run: |
+          curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 5 \
+            -o /dev/null "$PUBLIC_SITE_URL/"

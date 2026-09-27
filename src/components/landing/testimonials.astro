@@ -1,0 +1,123 @@
+---
+import Quote from "@lucide/astro/icons/quote"
+import { Image } from "astro:assets"
+import alex from "@/assets/landing/people/alex.webp"
+import jordan from "@/assets/landing/people/jordan.webp"
+import sam from "@/assets/landing/people/sam.webp"
+
+// Fictional people and quotes for the template. Replace with approved testimonials.
+const testimonials = [
+  {
+    quote:
+      "I add the photos from my phone and finish the details at my desk. It fits the way I already work.",
+    name: "Alex M.",
+    role: "Independent shop owner",
+    image: alex,
+  },
+  {
+    quote:
+      "A photo, a price, a clear status. Everything I need to find a product is right there.",
+    name: "Jordan R.",
+    role: "Studio founder",
+    image: jordan,
+  },
+  {
+    quote:
+      "When a product needs a quick update, I can take care of it without heading back to my laptop.",
+    name: "Sam T.",
+    role: "Catalog manager",
+    image: sam,
+  },
+]
+---
+
+<section
+  id="customer-stories"
+  class="landing-section landing-testimonials scroll-mt-10"
+  aria-labelledby="testimonials-heading"
+>
+  <div class="landing-section-intro" data-reveal="true">
+    <div>
+      <p class="mb-4 text-primary text-sm">Customer stories</p>
+      <h2 id="testimonials-heading" class="landing-section-heading">
+        More time for
+        <br />
+        the good stuff.
+      </h2>
+    </div>
+    <p class="max-w-xs text-muted-foreground text-sm leading-relaxed">
+      Less time keeping track. More time bringing your products to life.
+    </p>
+  </div>
+  <div class="landing-testimonial-window" data-reveal="true">
+    <div class="landing-testimonial-track" data-running="false">
+      {
+        [false, true].map((duplicate) => (
+          <div
+            class="landing-testimonial-group"
+            aria-hidden={duplicate ? "true" : undefined}
+            inert={duplicate}
+          >
+            {testimonials.map(({ quote, name, role, image }) => (
+              <figure class="landing-testimonial">
+                <Quote class="mb-5 size-5 text-primary" aria-hidden="true" />
+                <blockquote>“{quote}”</blockquote>
+                <figcaption class="mt-6 flex items-center gap-3">
+                  <Image
+                    class="landing-testimonial-portrait"
+                    src={image}
+                    alt=""
+                    width={48}
+                    densities={[1, 2, 3]}
+                    format="webp"
+                  />
+                  <span>
+                    <span class="block font-medium text-sm">{name}</span>
+                    <span class="mt-1 block text-muted-foreground text-xs">
+                      {role}
+                    </span>
+                  </span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+
+<style>
+  .landing-testimonials { padding-top: 0; }
+  .landing-testimonial-window { overflow: hidden; }
+  .landing-testimonial-track { display: flex; width: max-content; }
+  .landing-testimonial-group { display: flex; gap: 1rem; padding-right: 1rem; }
+  .landing-testimonial { display: flex; flex-direction: column; width: clamp(16rem, 34vw, 26rem); padding: 1.75rem; border: 1px solid var(--border); border-radius: var(--radius-xl); background: var(--background); }
+  .landing-testimonial :global(.landing-testimonial-portrait) { flex-shrink: 0; width: 3rem; height: 3rem; object-fit: cover; border-radius: 50%; }
+  .landing-testimonial blockquote { flex: 1; font-size: 1.125rem; line-height: 1.6; letter-spacing: -.015em; text-wrap: pretty; }
+  @media (prefers-reduced-motion: no-preference) {
+    .landing-testimonial-track { animation: landing-marquee 32s linear infinite; animation-play-state: paused; }
+    .landing-testimonial-track[data-running="true"] { animation-play-state: running; }
+    @keyframes landing-marquee { to { transform: translateX(-50%); } }
+  }
+  @media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+    .landing-testimonial-track[data-running="true"]:hover { animation-play-state: paused; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .landing-testimonial-track { width: 100%; }
+    .landing-testimonial-group { width: 100%; flex-wrap: wrap; padding: 0; }
+    .landing-testimonial-group[aria-hidden="true"] { display: none; }
+    .landing-testimonial { flex: 1 1 16rem; }
+  }
+  @media (max-width: 639px) {
+    .landing-testimonial { padding: 1.5rem; }
+  }
+</style>
+
+<script>
+  import { startTestimonialMarquee } from "@/scripts/testimonial-marquee"
+
+  const section = document.getElementById("customer-stories")
+  if (section) startTestimonialMarquee(section)
+</script>

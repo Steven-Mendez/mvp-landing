@@ -1,0 +1,54 @@
+---
+import { PUBLIC_REPOSITORY_URL } from "astro:env/client"
+import ArrowUpRight from "@lucide/astro/icons/arrow-up-right"
+import Code from "@lucide/astro/icons/code"
+import { signUpHref } from "@/lib/app-url"
+import { marketingButtonLink } from "@/lib/button-classes"
+
+interface Props {
+  inverse?: boolean
+}
+
+const { inverse = false } = Astro.props
+const repository = PUBLIC_REPOSITORY_URL
+---
+
+<div class="landing-actions">
+  <div class="landing-action-buttons">
+    <a href={signUpHref()} {...marketingButtonLink(inverse ? "secondary" : "default")}>
+      Try it live
+      <ArrowUpRight class="size-4" aria-hidden="true" />
+    </a>
+    {
+      repository && (
+        <a
+          href={repository}
+          target="_blank"
+          rel="noopener noreferrer"
+          {...marketingButtonLink(inverse ? "secondary" : "outline")}
+        >
+          <Code class="size-4" aria-hidden="true" />
+          Get the source
+        </a>
+      )
+    }
+  </div>
+</div>
+
+<style>
+  .landing-actions { min-width: 0; }
+  .landing-action-buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; }
+  @media (prefers-reduced-motion: no-preference) {
+    .landing-action-buttons a { transition: transform 200ms cubic-bezier(.23,1,.32,1), background-color 180ms ease; }
+    .landing-action-buttons a > :global(svg) { transition: transform 200ms cubic-bezier(.23,1,.32,1); }
+    .landing-action-buttons a:active { transform: scale(.97); transition-duration: 120ms; }
+  }
+  @media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+    .landing-action-buttons a:hover { transform: translateY(-3px); }
+    .landing-action-buttons a:hover > :global(svg) { transform: translate(2px, -2px); }
+    .landing-action-buttons a:active { transform: scale(.97); }
+  }
+  @media (max-width: 639px) {
+    .landing-action-buttons { flex-direction: column; align-items: stretch; width: min(100%, 20rem); margin-inline: auto; }
+  }
+</style>

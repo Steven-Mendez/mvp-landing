@@ -1,0 +1,11 @@
+# Accepted Trivy findings for infra/, each with its reason. The stack is pay-per-use with
+# no fixed monthly cost, and it serves a public static site.
+
+# CloudFront without WAF: a web ACL costs a fixed monthly fee, and a static site in S3 has
+# no forms, logins or server code for its rules to protect.
+AVD-AWS-0011
+
+# Landing bucket without a customer managed KMS key: the objects are the public build,
+# encrypted at rest with S3-managed keys; a CMK adds a monthly fee and key policy for
+# nothing secret.
+AVD-AWS-0132

@@ -1,0 +1,120 @@
+---
+import BrandLogo from "@/components/brand-logo.astro"
+import { demoProducts } from "@/data/demo-products"
+import { toCatalogProducts } from "@/lib/catalog-products"
+import { optimizedImage } from "@/lib/images"
+import { CatalogDemo } from "./catalog-demo"
+import MobileAppPreview from "./mobile-app-preview.astro"
+
+const product = demoProducts[2]
+// The island gets plain strings: the optimized image URL instead of the import.
+const products = await toCatalogProducts(demoProducts, optimizedImage)
+---
+
+<div class="landing-stage">
+  <div class="landing-stage-caption">
+    <span class="flex items-center gap-2">
+      <BrandLogo class="size-6" decorative />
+      The included example feature, running live
+    </span>
+  </div>
+  <div class="landing-workspace" data-reveal="workspace">
+    <aside class="landing-preview-sidebar" aria-label="Sample catalog overview">
+      <span class="flex items-center gap-2 font-medium text-sm">
+        <BrandLogo class="size-8" decorative />
+        Studio
+      </span>
+      <div class="mt-12 space-y-2">
+        <p class="text-muted-foreground text-xs">Your collection</p>
+        <p class="font-medium text-5xl tracking-tight">03</p>
+        <p class="text-muted-foreground text-xs">Products, all together.</p>
+      </div>
+      <div class="mt-8 space-y-3 text-xs">
+        <p class="flex justify-between gap-3">
+          <span class="flex items-center gap-2">
+            <span class="size-1.5 rounded-full bg-success"></span>
+            Active
+          </span>
+          <span>3</span>
+        </p>
+        <p class="flex justify-between gap-3 text-muted-foreground">
+          <span>Drafts</span>
+          <span>0</span>
+        </p>
+        <p class="flex justify-between gap-3 text-muted-foreground">
+          <span>Archived</span>
+          <span>0</span>
+        </p>
+      </div>
+      <p class="mt-auto pt-12 text-muted-foreground text-xs leading-relaxed">
+        Sample data.
+        <br />
+        Real code.
+      </p>
+    </aside>
+    <div class="min-w-0 flex-1">
+      <CatalogDemo client:idle products={products} />
+    </div>
+  </div>
+  <div class="landing-mobile-preview" data-reveal="phone" data-reveal-delay="160">
+    <MobileAppPreview product={product} />
+  </div>
+</div>
+
+<style>
+  .landing-stage {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 13rem;
+    align-items: center;
+    gap: 2rem;
+    padding: 2rem 2.5rem 2.5rem;
+    border-radius: var(--radius-xl);
+    background: var(--primary);
+  }
+  .landing-stage-caption {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: .5rem;
+    color: var(--primary-foreground);
+    font-size: .75rem;
+  }
+  .landing-workspace {
+    display: flex;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--card);
+    transform: rotate(-.6deg);
+    transform-origin: center;
+  }
+  .landing-preview-sidebar {
+    width: 8rem;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 1.75rem 1.25rem;
+    border-right: 1px solid var(--border);
+    background: var(--background);
+  }
+  .landing-mobile-preview {
+    position: relative;
+    align-self: end;
+    width: 13rem;
+    transform: rotate(2.5deg);
+    pointer-events: none;
+  }
+  @media (max-width: 1023px) {
+    .landing-stage { display: block; padding: 1.5rem 2rem 2rem; }
+    .landing-stage-caption { margin-bottom: 1.5rem; }
+    .landing-preview-sidebar { display: none; }
+    .landing-mobile-preview { display: none; }
+    .landing-workspace { transform: none; }
+  }
+  @media (max-width: 639px) {
+    .landing-stage { padding: 1.25rem .625rem .625rem; }
+    .landing-stage-caption { margin-bottom: 1.25rem; padding-inline: .5rem; }
+  }
+</style>

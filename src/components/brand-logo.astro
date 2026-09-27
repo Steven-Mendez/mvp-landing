@@ -1,0 +1,27 @@
+---
+import { Image } from "astro:assets"
+import beaver from "@/assets/brand/beaver-icon.png"
+import { cn } from "@/lib/utils"
+import { site } from "@/site"
+
+interface Props {
+  class?: string
+  decorative?: boolean
+  /** Above the fold: load eagerly with high priority (the header logo only). */
+  priority?: boolean
+}
+
+const { class: className, decorative = false, priority = false } = Astro.props
+---
+
+<Image
+  src={beaver}
+  width={40}
+  height={40}
+  densities={[1, 2, 3]}
+  format="webp"
+  alt={decorative ? "" : site.name}
+  class={cn("size-10 shrink-0 rounded-lg object-cover", className)}
+  draggable="false"
+  priority={priority}
+/>

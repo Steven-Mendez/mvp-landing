@@ -1,0 +1,97 @@
+---
+import { Font } from "astro:assets"
+import { site } from "@/site"
+import "@/styles/globals.css"
+
+interface Props {
+  title: string
+  description: string
+  /** False for pages that must not claim a canonical URL (the 404). */
+  canonical?: boolean
+}
+
+const { title, description, canonical = true } = Astro.props
+const pageUrl = new URL(Astro.url.pathname, Astro.site).href
+// Absolute, like the app's server-rendered head (crawlers need a full URL).
+const socialImage = new URL("/brand/social.png", Astro.site).href
+// The theme's `background`, light and dark (src/styles/globals.css).
+const themeColors = { light: "#f3f1ee", dark: "#2b2927" }
+// The inline script below always follows the operating system's colour scheme: it runs
+// before first paint (no flash), sets the `light`/`dark` class and color-scheme on
+// <html>, and switches with the system while the page is open.
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="application-name" content={site.name} />
+    <meta
+      name="theme-color"
+      content={themeColors.light}
+      media="(prefers-color-scheme: light)"
+    />
+    <meta
+      name="theme-color"
+      content={themeColors.dark}
+      media="(prefers-color-scheme: dark)"
+    />
+    {canonical && <link rel="canonical" href={pageUrl} />}
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    {canonical && <meta property="og:url" content={pageUrl} />}
+    <meta property="og:image" content={socialImage} />
+    <meta property="og:image:width" content="1024" />
+    <meta property="og:image:height" content="1024" />
+    <meta property="og:image:alt" content={`${site.name} blue beaver`} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:image" content={socialImage} />
+    <meta name="description" content={description} />
+    <slot name="head" />
+    <Font cssVariable="--font-geist" preload />
+    <link
+      rel="icon"
+      href="/favicon.ico?v=beaver-blue-rounded"
+      sizes="16x16 32x32 48x48"
+    />
+    <link
+      rel="icon"
+      href="/favicon-32.png?v=beaver-blue-rounded"
+      type="image/png"
+      sizes="32x32"
+    />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <script is:inline>
+      ;(() => {
+        const root = document.documentElement
+        const media = window.matchMedia("(prefers-color-scheme: dark)")
+        const set = () => {
+          const scheme = media.matches ? "dark" : "light"
+          root.classList.remove("light", "dark")
+          root.classList.add(scheme)
+          root.style.colorScheme = scheme
+        }
+        set()
+        // A system switch mid-visit: no transitions while the colours change.
+        media.addEventListener("change", () => {
+          const style = document.createElement("style")
+          style.append(
+            "*,*::before,*::after{-webkit-transition:none!important;transition:none!important}"
+          )
+          document.head.append(style)
+          set()
+          window.getComputedStyle(document.body)
+          setTimeout(() => style.remove(), 1)
+        })
+      })()
+    </script>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

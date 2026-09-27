@@ -1,0 +1,13 @@
+---
+/**
+ * The app → landing notice handoff. Every visit runs this small check; the toast
+ * (React, sonner) is a separate chunk, fetched only when the URL names a known notice.
+ */
+---
+
+<script>
+  import { isNoticeId } from "./notice-ids"
+
+  if (isNoticeId(new URLSearchParams(location.search).get("notice")))
+    import("./notice-entry")
+</script>

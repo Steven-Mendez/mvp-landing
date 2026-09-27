@@ -1,0 +1,130 @@
+---
+import ArrowRight from "@lucide/astro/icons/arrow-right"
+import ArrowUpRight from "@lucide/astro/icons/arrow-up-right"
+import Check from "@lucide/astro/icons/check"
+import Circle from "@lucide/astro/icons/circle"
+import Server from "@lucide/astro/icons/server"
+import Smartphone from "@lucide/astro/icons/smartphone"
+import { demoProducts } from "@/data/demo-products"
+import CatalogDetailPreview from "./catalog-detail-preview.astro"
+import MobileAppPreview from "./mobile-app-preview.astro"
+---
+
+<section
+  id="example"
+  aria-labelledby="example-heading"
+  class="landing-section scroll-mt-10"
+>
+  <div class="landing-section-intro" data-reveal="true">
+    <h2 id="example-heading" class="landing-section-heading">
+      A real feature,
+      <br />
+      end to end.
+    </h2>
+    <p class="max-w-sm text-muted-foreground leading-relaxed">
+      The kit ships with a product catalog so you can see every layer
+      working together. Study it, build on it, or delete it once your own
+      feature is in.
+    </p>
+  </div>
+  <div class="landing-feature-grid">
+    <article class="landing-feature-focus" data-reveal="left">
+      <div class="flex items-center justify-between gap-4">
+        <Server class="size-6" aria-hidden="true" />
+        <span class="text-xs">Included example</span>
+      </div>
+      <h3
+        class="mt-5 max-w-sm font-medium text-3xl leading-tight tracking-tight sm:text-4xl"
+      >
+        From the database
+        <br />
+        to every screen.
+      </h3>
+      <p class="mt-5 max-w-xs text-sm leading-relaxed">
+        A migration, API endpoints, the generated clients, web and native
+        screens, realtime updates and tests. All for one feature.
+      </p>
+      <CatalogDetailPreview />
+      <section
+        class="landing-status-flow"
+        aria-label="Example lifecycle: draft, active, archived"
+      >
+        <span>
+          <Circle class="size-3" aria-hidden="true" />
+          Draft
+        </span>
+        <ArrowRight class="size-4 shrink-0" aria-hidden="true" />
+        <span>
+          <Check class="size-3" aria-hidden="true" />
+          Active
+        </span>
+        <ArrowRight class="size-4 shrink-0" aria-hidden="true" />
+        <span>Archived</span>
+      </section>
+      <a
+        href="/#workspace"
+        class="mt-5 inline-flex items-center gap-3 text-sm underline underline-offset-4"
+      >
+        Try the example{" "}
+        <ArrowUpRight class="size-4" aria-hidden="true" />
+      </a>
+    </article>
+    <article
+      id="mobile-app"
+      class="landing-feature-device scroll-mt-10"
+      data-reveal="right"
+      data-reveal-delay="80"
+    >
+      <div class="relative z-10 max-w-xs">
+        <span class="flex items-center gap-2 text-muted-foreground text-xs">
+          <Smartphone class="size-4" aria-hidden="true" />
+          Expo for iOS & Android
+        </span>
+        <h3 class="mt-6 font-medium text-3xl tracking-tight sm:text-4xl">
+          Native from
+          <br />
+          the first commit.
+        </h3>
+        <p class="mt-4 text-muted-foreground text-sm leading-relaxed">
+          The mobile app generates its client from the same API spec and
+          matches the web’s tokens, with native navigation and a cache that
+          survives restarts.
+        </p>
+      </div>
+      <div class="landing-device-composition">
+        <div class="landing-device-phone">
+          <MobileAppPreview product={demoProducts[1]} compact />
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<style>
+  .landing-feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .landing-feature-focus,
+  .landing-feature-device { position: relative; overflow: hidden; border-radius: var(--radius-xl); padding: 2rem; }
+  .landing-feature-focus { background: var(--foreground); color: var(--background); }
+  .landing-feature-device { background: var(--accent); }
+  .landing-status-flow { margin-top: 1.5rem; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }
+  .landing-status-flow > :global(svg) { display: none; }
+  .landing-status-flow span { display: flex; align-items: center; justify-content: center; gap: .5rem; border: 1px solid currentColor; border-radius: var(--radius-md); padding: .5rem .25rem; font-size: .75rem; }
+  .landing-status-flow span:nth-of-type(2) { border-color: var(--primary); background: var(--primary); color: var(--primary-foreground); }
+  .landing-device-composition { position: relative; margin-top: 1.5rem; padding: .5rem; }
+  .landing-device-phone { width: min(12rem, 100%); margin-inline: auto; transform: rotate(2deg); }
+  @media (max-width: 1023px) {
+    .landing-feature-focus, .landing-feature-device { padding: 2rem; }
+  }
+  @media (min-width: 1200px) {
+    .landing-feature-device { display: grid; grid-template-columns: minmax(0, 1fr) 12rem; align-items: center; gap: 1.5rem; }
+    .landing-device-composition { margin-top: 0; padding: 0; }
+  }
+  @media (max-width: 639px) {
+    .landing-feature-grid { grid-template-columns: 1fr; }
+    .landing-feature-focus, .landing-feature-device { padding: 1.75rem; }
+    .landing-device-phone { margin-inline: auto; }
+    .landing-status-flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }
+    .landing-status-flow :global(svg) { display: none; }
+    .landing-status-flow span { justify-content: center; padding: .5rem .25rem; font-size: .6875rem; }
+  }
+</style>

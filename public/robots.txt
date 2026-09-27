@@ -1,0 +1,4 @@
+# https://www.robotstxt.org/robotstxt.html
+# The landing is a single public page; the app (sign-in, workspaces) lives on its own origin.
+User-agent: *
+Allow: /

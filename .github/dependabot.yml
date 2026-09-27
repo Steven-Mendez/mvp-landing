@@ -1,0 +1,32 @@
+version: 2
+
+updates:
+  # Astro, its integrations and the rest of package.json (pnpm-lock.yaml).
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    # One pull request per group instead of one per package.
+    groups:
+      astro:
+        patterns: ["astro", "@astrojs/*"]
+      dev-minor-and-patch:
+        dependency-type: development
+        update-types: ["minor", "patch"]
+
+  # The actions of the workflows (pinned by SHA; Dependabot bumps the SHA and the comment).
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # The AWS provider (infra/.terraform.lock.hcl).
+  - package-ecosystem: terraform
+    directory: /infra
+    schedule:
+      interval: weekly

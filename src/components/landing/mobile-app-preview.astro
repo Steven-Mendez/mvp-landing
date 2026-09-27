@@ -1,0 +1,116 @@
+---
+import ChevronLeft from "@lucide/astro/icons/chevron-left"
+import Ellipsis from "@lucide/astro/icons/ellipsis"
+import House from "@lucide/astro/icons/house"
+import Package from "@lucide/astro/icons/package"
+import Pencil from "@lucide/astro/icons/pencil"
+import Smartphone from "@lucide/astro/icons/smartphone"
+import Store from "@lucide/astro/icons/store"
+import { Image } from "astro:assets"
+import type { DemoProduct } from "@/data/demo-products"
+import { formatPrice } from "@/lib/format"
+
+interface Props {
+  product: DemoProduct
+  compact?: boolean
+}
+
+/** A read-only illustration of the native client's product detail screen. */
+const { product, compact = false } = Astro.props
+---
+
+<figure
+  class={compact
+    ? "landing-app-preview landing-app-preview-compact"
+    : "landing-app-preview"}
+>
+  <figcaption class="landing-app-caption">
+    <span>
+      <Smartphone aria-hidden="true" /> Mobile app
+    </span>
+    <span>Preview</span>
+  </figcaption>
+  {
+    !compact && (
+      <div class="landing-app-navigation" aria-hidden="true">
+        <span>
+          <ChevronLeft /> Products
+        </span>
+        <span class="text-primary">
+          <Pencil /> Edit
+        </span>
+      </div>
+    )
+  }
+  <div class="landing-app-content">
+    <p class="font-medium text-base leading-snug">{product.name}</p>
+    <p class="mt-2 flex items-center gap-1.5 text-success text-xs">
+      <span class="size-1.5 rounded-full bg-success" aria-hidden="true"></span>
+      Active
+    </p>
+    <dl class="landing-app-details">
+      <div>
+        <dt>Price</dt>
+        <dd class="font-medium text-lg tabular-nums">
+          {formatPrice(product.price)}
+        </dd>
+      </div>
+      <div>
+        <dt>SKU</dt>
+        <dd class="text-xs">{product.sku}</dd>
+      </div>
+    </dl>
+    <!-- Shown at most ~13rem wide (6rem tall when compact). -->
+    <Image
+      src={product.image}
+      alt={product.alt}
+      width={240}
+      densities={[1, 2]}
+      format="webp"
+      class="aspect-square w-full rounded-lg object-cover"
+    />
+    {
+      !compact && (
+        <p class="mt-3 text-muted-foreground text-xs leading-relaxed">
+          {product.description}
+        </p>
+      )
+    }
+  </div>
+  <div class="landing-app-tabs" aria-hidden="true">
+    <span>
+      <House />
+      Home
+    </span>
+    <span class="text-primary">
+      <Package />
+      Products
+    </span>
+    <span>
+      <Store />
+      Store
+    </span>
+    <span>
+      <Ellipsis />
+      More
+    </span>
+  </div>
+</figure>
+
+<style>
+  .landing-app-preview { overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-xl); background: var(--card); color: var(--foreground); font-family: var(--font-family-sans); }
+  .landing-app-caption { display: flex; justify-content: space-between; align-items: center; gap: .5rem; padding: .75rem; border-bottom: 1px solid var(--border); font-size: .6875rem; color: var(--muted-foreground); }
+  .landing-app-caption span, .landing-app-navigation span { display: inline-flex; align-items: center; gap: .25rem; }
+  .landing-app-preview :global(svg) { width: .875rem; height: .875rem; flex-shrink: 0; }
+  .landing-app-navigation { display: flex; justify-content: space-between; gap: .5rem; padding: .75rem; font-size: .6875rem; }
+  .landing-app-content { padding: .25rem .875rem 1rem; }
+  .landing-app-details { display: grid; grid-template-columns: 1fr 1fr; align-items: end; gap: .75rem; margin-block: .875rem; padding-top: .75rem; border-top: 1px solid var(--border); }
+  .landing-app-details dt { margin-bottom: .25rem; color: var(--muted-foreground); font-size: .6875rem; }
+  .landing-app-content :global(img) { aspect-ratio: 4 / 3; }
+  .landing-app-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: .25rem; padding: .625rem .5rem; border-top: 1px solid var(--border); color: var(--muted-foreground); font-size: .625rem; }
+  .landing-app-tabs span { display: flex; flex-direction: column; align-items: center; gap: .25rem; }
+  .landing-app-preview-compact .landing-app-caption { padding: .5rem .75rem; }
+  .landing-app-preview-compact .landing-app-content { padding: .75rem; }
+  .landing-app-preview-compact .landing-app-details { margin-block: .625rem; padding-top: .5rem; }
+  .landing-app-preview-compact .landing-app-content :global(img) { height: 6rem; aspect-ratio: auto; }
+</style>

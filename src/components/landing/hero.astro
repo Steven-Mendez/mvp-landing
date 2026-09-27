@@ -1,0 +1,119 @@
+---
+import ArrowDown from "@lucide/astro/icons/arrow-down"
+import Check from "@lucide/astro/icons/check"
+import Code from "@lucide/astro/icons/code"
+import Smartphone from "@lucide/astro/icons/smartphone"
+import Users from "@lucide/astro/icons/users"
+import CallToAction from "./call-to-action.astro"
+import HeroPreview from "./hero-preview.astro"
+---
+
+<section class="landing-hero" aria-labelledby="hero-heading">
+  <div class="landing-hero-copy">
+    <p
+      class="mb-6 flex items-center justify-center gap-2 text-muted-foreground text-sm"
+    >
+      <span class="size-1.5 rounded-full bg-primary" aria-hidden="true"
+      ></span>
+      The starter kit for web, iOS and Android
+    </p>
+    <h1 id="hero-heading" class="landing-display">
+      <span class="landing-title-line">
+        <span>Your next big idea.</span>
+      </span>{" "}
+      <span class="landing-title-line">
+        <span>Minus the plumbing.</span>
+      </span>
+    </h1>
+    <p
+      class="mx-auto mt-6 max-w-xl text-pretty text-base text-muted-foreground leading-relaxed sm:text-lg"
+    >
+      Start from a working product, not an empty folder. Accounts, team
+      workspaces, a typed API and native apps are already built, so your
+      first week goes into what makes your idea different.
+    </p>
+    <div class="mt-8">
+      <CallToAction />
+    </div>
+    <a href="/#workspace" class="landing-explore-link">
+      See it running
+      <ArrowDown class="size-4" aria-hidden="true" />
+    </a>
+  </div>
+  <div id="workspace" class="landing-showcase scroll-mt-6">
+    <HeroPreview />
+  </div>
+  <section class="landing-capabilities" aria-label="Included in the kit">
+    <span>
+      <Smartphone aria-hidden="true" />
+      Web, iOS & Android
+    </span>
+    <span>
+      <Users aria-hidden="true" />
+      Accounts & workspaces
+    </span>
+    <span>
+      <Code aria-hidden="true" />
+      Typed API client
+    </span>
+    <span>
+      <Check aria-hidden="true" />
+      Tested & CI-ready
+    </span>
+  </section>
+</section>
+
+<style>
+  .landing-hero { padding-top: 3.5rem; }
+  .landing-hero-copy { padding-inline: 1.5rem; text-align: center; }
+  .landing-explore-link { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; margin-top: .75rem; color: var(--muted-foreground); font-size: .875rem; }
+  .landing-explore-link:hover { color: var(--primary); }
+  .landing-display {
+    font-size: clamp(3.5rem, 7.5vw, 7rem);
+    font-weight: 500;
+    letter-spacing: -.065em;
+    line-height: .98;
+  }
+  .landing-title-line { display: block; overflow: hidden; padding-bottom: .12em; margin-bottom: -.12em; }
+  .landing-title-line > span { display: block; }
+  .landing-showcase {
+    width: min(100% - 3rem, 84rem);
+    margin: 4rem auto 0;
+  }
+  .landing-capabilities {
+    width: min(100% - 3rem, 68rem);
+    margin: 3.5rem auto 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding-block: 1.5rem;
+    font-size: .875rem;
+    color: var(--muted-foreground);
+  }
+  .landing-capabilities span { display: flex; align-items: center; gap: .75rem; }
+  .landing-capabilities :global(svg) { width: 1rem; height: 1rem; color: var(--primary); }
+  @media (prefers-reduced-motion: no-preference) {
+    .landing-hero-copy > :not(h1) { animation: landing-arrive 800ms cubic-bezier(.23,1,.32,1) backwards; }
+    .landing-title-line > span { animation: landing-title-arrive 1000ms 100ms cubic-bezier(.23,1,.32,1) backwards; }
+    .landing-title-line + .landing-title-line > span { animation-delay: 240ms; }
+    .landing-hero-copy > :nth-child(3) { animation-delay: 320ms; }
+    .landing-hero-copy > :nth-child(4) { animation-delay: 420ms; }
+    .landing-hero-copy > :nth-child(5) { animation-delay: 500ms; }
+    .landing-hero-copy[data-motion-complete] > *, .landing-hero-copy[data-motion-complete] .landing-title-line > span { animation: none; }
+    .landing-explore-link > :global(svg) { animation: landing-explore-nudge 1600ms 1200ms 2 cubic-bezier(.77,0,.175,1); transition: transform 200ms cubic-bezier(.23,1,.32,1); }
+    @keyframes landing-arrive { from { opacity: 0; transform: translateY(32px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes landing-title-arrive { from { opacity: 0; transform: translateY(110%) rotate(2deg); } to { opacity: 1; transform: translateY(0) rotate(0); } }
+    @keyframes landing-explore-nudge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+  }
+  @media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+    .landing-explore-link:hover > :global(svg) { animation-play-state: paused; }
+  }
+  @media (max-width: 639px) {
+    .landing-hero { padding-top: 2.5rem; }
+    .landing-display { font-size: clamp(3rem, 13.5vw, 5rem); }
+    .landing-showcase { width: calc(100% - 1.5rem); margin-top: 3rem; }
+    .landing-capabilities { margin-top: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem .5rem; font-size: .75rem; }
+    .landing-capabilities span { gap: .5rem; }
+  }
+</style>
