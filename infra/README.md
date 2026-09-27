@@ -56,10 +56,14 @@ the state bucket come from `mvp-api/infra/bootstrap`.
    cp infra/backend.tf.example infra/backend.tf
    terraform -chdir=infra init -backend-config=envs/prod/backend.hcl -backend-config="bucket=$BUCKET"
    terraform -chdir=infra apply -var-file=envs/prod/prod.tfvars \
-     -var "github_repository=$REPO" -var "tf_state_bucket=$BUCKET"
+     -var "tf_state_bucket=$BUCKET" -var "github_repository=$REPO" \
+     -var "github_owner_id=$(gh api "repos/$REPO" --jq .owner.id)" \
+     -var "github_repository_id=$(gh api "repos/$REPO" --jq .id)"
    ```
 
-   Leave out both `-var` flags to apply without the GitHub roles (no CD).
+   The IDs match GitHub's immutable OIDC subject, which new repositories use; without them
+   the roles trust only the name-only form. Leave out every `-var` flag to apply without
+   the GitHub roles (no CD).
 
 2. **Set the GitHub variables** from the stack's outputs. Nothing about your account is
    committed; the workflows read it all from these variables:

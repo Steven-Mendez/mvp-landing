@@ -52,8 +52,10 @@ jobs:
         continue-on-error: true
         run: |
           terraform -chdir=infra plan -no-color -input=false -lock-timeout=60s \
-            -var-file=envs/prod/prod.tfvars -var "github_repository=$GITHUB_REPOSITORY" \
-            -var "tf_state_bucket=$TF_STATE_BUCKET" \
+            -var-file=envs/prod/prod.tfvars -var "tf_state_bucket=$TF_STATE_BUCKET" \
+            -var "github_repository=$GITHUB_REPOSITORY" \
+            -var "github_owner_id=$GITHUB_REPOSITORY_OWNER_ID" \
+            -var "github_repository_id=$GITHUB_REPOSITORY_ID" \
             > "$RUNNER_TEMP/plan.txt" 2>&1
 
       - name: Comment the plan

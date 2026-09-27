@@ -48,6 +48,18 @@ variable "github_repository" {
   }
 }
 
+variable "github_owner_id" {
+  description = "Numeric ID of the repository's owner (gh api repos/<owner>/<repo> --jq .owner.id). With github_repository_id, the roles also trust GitHub's immutable OIDC subject, which new repositories use."
+  type        = number
+  default     = null
+}
+
+variable "github_repository_id" {
+  description = "Numeric ID of the repository (gh api repos/<owner>/<repo> --jq .id)."
+  type        = number
+  default     = null
+}
+
 variable "github_environment" {
   description = "GitHub environment the deploy job runs in; only it may assume the deploy role."
   type        = string

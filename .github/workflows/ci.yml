@@ -101,4 +101,5 @@ jobs:
           done
           echo "plan: prod with enable_dns and github_repository"
           plan -var-file=envs/prod/prod.tfvars -var enable_dns=true \
-            -var github_repository=owner/mvp-landing -var tf_state_bucket=offline-state
+            -var github_repository=owner/mvp-landing -var github_owner_id=1 -var github_repository_id=2 \
+            -var tf_state_bucket=offline-state

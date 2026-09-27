@@ -13,6 +13,18 @@
 locals {
   github_roles = var.github_repository != ""
 
+  # The OIDC subject GitHub issues. New repositories get the immutable form, which pins the
+  # owner and repository IDs: a repository recreated under the same name cannot assume the
+  # roles. The name-only form covers repositories that still use it. Exact matches only.
+  github_subject_prefixes = compact([
+    var.github_owner_id != null && var.github_repository_id != null ? format(
+      "repo:%s@%d/%s@%d",
+      split("/", var.github_repository)[0], var.github_owner_id,
+      split("/", var.github_repository)[1], var.github_repository_id,
+    ) : "",
+    "repo:${var.github_repository}",
+  ])
+
   github_oidc_provider_arn = var.offline_validation ? (
     "arn:aws:iam::000000000000:oidc-provider/token.actions.githubusercontent.com"
   ) : one(data.aws_iam_openid_connect_provider.github[*].arn)
@@ -24,11 +36,11 @@ data "aws_iam_openid_connect_provider" "github" {
   url = "https://token.actions.githubusercontent.com"
 }
 
-# Trust: one exact OIDC subject per role, no wildcards.
+# Trust: exact OIDC subjects per role, no wildcards.
 data "aws_iam_policy_document" "github_trust" {
   for_each = local.github_roles ? {
-    deploy = "repo:${var.github_repository}:environment:${var.github_environment}"
-    plan   = "repo:${var.github_repository}:pull_request"
+    deploy = [for prefix in local.github_subject_prefixes : "${prefix}:environment:${var.github_environment}"]
+    plan   = [for prefix in local.github_subject_prefixes : "${prefix}:pull_request"]
   } : {}
 
   statement {
@@ -48,7 +60,7 @@ data "aws_iam_policy_document" "github_trust" {
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = [each.value]
+      values   = each.value
     }
   }
 }
