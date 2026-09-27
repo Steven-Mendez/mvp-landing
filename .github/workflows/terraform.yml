@@ -52,7 +52,9 @@ jobs:
         continue-on-error: true
         run: |
           terraform -chdir=infra plan -no-color -input=false -lock-timeout=60s \
-            -var-file=envs/prod/prod.tfvars > "$RUNNER_TEMP/plan.txt" 2>&1
+            -var-file=envs/prod/prod.tfvars -var "github_repository=$GITHUB_REPOSITORY" \
+            -var "tf_state_bucket=$TF_STATE_BUCKET" \
+            > "$RUNNER_TEMP/plan.txt" 2>&1
 
       - name: Comment the plan
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0

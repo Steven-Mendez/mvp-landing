@@ -22,6 +22,7 @@ No workflow applies this stack; you apply it locally. GitHub Actions only checks
 | `dns.tf`                                            | with `enable_dns`: ACM certificate for `<domain>` + `www.<domain>` and the alias records     |
 | `ssm.tf`                                            | reads the core stack's DNS parameters, writes `landing/url`                                  |
 | `github_oidc.tf`                                    | with `github_repository`: the roles GitHub Actions assumes (deploy and plan)                 |
+| `scripts/github-variables.sh`                       | sets the GitHub Actions variables from the outputs                                           |
 | `variables.tf`, `locals.tf`, `outputs.tf`           | inputs, names and URLs, outputs                                                              |
 | `versions.tf`, `providers.tf`, `backend.tf.example` | pinned providers (`hashicorp/aws ~> 6.66`) and the S3 backend with `use_lockfile`            |
 | `envs/<env>/<env>.tfvars`, `envs/<env>/backend.hcl` | values and state key (`mvp-landing/<env>/terraform.tfstate`) for `dev`, `staging` and `prod` |
@@ -46,28 +47,39 @@ AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test \
 Deploy the stacks in this order: api (core) → web → landing. The GitHub OIDC provider and
 the state bucket come from `mvp-api/infra/bootstrap`.
 
-1. **Fill in prod.** Put the state bucket in `envs/prod/backend.hcl`. In
-   `envs/prod/prod.tfvars`, set `github_repository` (`owner/name`) and `tf_state_bucket`.
-2. **Apply** with administrator credentials:
+1. **Apply** with administrator credentials. The values that depend on your account and
+   repository are passed on the command line, never committed:
 
    ```sh
+   BUCKET=<project>-terraform-state-<account_id>   # the state bucket from the bootstrap
+   REPO=<owner>/<name>                              # this repository on GitHub
    cp infra/backend.tf.example infra/backend.tf
-   terraform -chdir=infra init -backend-config=envs/prod/backend.hcl
-   terraform -chdir=infra apply -var-file=envs/prod/prod.tfvars
+   terraform -chdir=infra init -backend-config=envs/prod/backend.hcl -backend-config="bucket=$BUCKET"
+   terraform -chdir=infra apply -var-file=envs/prod/prod.tfvars \
+     -var "github_repository=$REPO" -var "tf_state_bucket=$BUCKET"
    ```
 
-3. **Set up the `production` environment** (Settings → Environments). Restrict it to
-   `main`, then add these variables:
-   - every entry of `terraform -chdir=infra output github_environment_variables`
-   - `PUBLIC_APP_URL`: the web app's URL (`web/url` in SSM)
-   - `PUBLIC_REPOSITORY_URL`: optional
-4. **Add the repository variables** (Settings → Secrets and variables → Actions):
-   - `AWS_TERRAFORM_PLAN_ROLE_ARN`: from `terraform -chdir=infra output -raw terraform_plan_role_arn`
-   - `TF_STATE_BUCKET`
-   - `AWS_REGION`
+   Leave out both `-var` flags to apply without the GitHub roles (no CD).
 
-   The Terraform workflow skips its plan until the role variable exists.
-5. **Without DNS**, run the web deploy again. It reads this site's URL from `landing/url`,
+2. **Set the GitHub variables** from the stack's outputs. Nothing about your account is
+   committed; the workflows read it all from these variables:
+
+   ```sh
+   infra/scripts/github-variables.sh <PUBLIC_APP_URL> [PUBLIC_REPOSITORY_URL]
+   ```
+
+   `PUBLIC_APP_URL` is the web app's URL (`web/url` in SSM). Until the web app exists, use
+   this site's own URL: its "Sign in" and "Try it now" links show the 404 page meanwhile.
+   Run the script again whenever a value changes (a new domain, the web app's real URL).
+
+   | Where                      | Variable                                                                                        |
+   | -------------------------- | ----------------------------------------------------------------------------------------------- |
+   | environment `production`   | `AWS_DEPLOY_ROLE_ARN`, `AWS_REGION`, `LANDING_BUCKET`, `CLOUDFRONT_DISTRIBUTION_ID`, `PUBLIC_SITE_URL`, `PUBLIC_APP_URL`, `PUBLIC_REPOSITORY_URL` (optional) |
+   | repository                 | `AWS_TERRAFORM_PLAN_ROLE_ARN`, `TF_STATE_BUCKET`, `AWS_REGION`                                  |
+
+   The script also restricts the `production` environment to `main`. The Terraform
+   workflow skips its plan until `AWS_TERRAFORM_PLAN_ROLE_ARN` exists.
+3. **Without DNS**, run the web deploy again. It reads this site's URL from `landing/url`,
    which exists only after this first apply.
 
 From then on every push to `main` passes CI and publishes the site. Apply changes to
