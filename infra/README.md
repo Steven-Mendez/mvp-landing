@@ -57,6 +57,8 @@ landing apply so it learns `landing/url`.
 - **Inspect:** CD's summary records the commit, site and artifact run. `/release.json`
   identifies the running version. Smoke checks home/canonical, real CTA responses,
   assets, 404 status and the expected commit.
+- **Cache:** hashed assets are immutable for a year. HTML has `max-age=0`; CloudFront's
+  managed policy has a one-second minimum. Publication waits for cache invalidation.
 - **Rollback:** choose an earlier successful CD run with its artifact still retained
   (90 days), then `gh workflow run rollback.yml --ref main -f run_id=<RUN_ID>`.
   The workflow checks the source run, commit, origins and every file checksum, republishes
