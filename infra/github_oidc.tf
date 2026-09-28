@@ -38,7 +38,7 @@ data "aws_caller_identity" "current" {
 data "aws_iam_openid_connect_provider" "github" {
   count = local.github_roles && !var.offline_validation ? 1 : 0
 
-  url = "https://token.actions.githubusercontent.com"
+  arn = "arn:aws:iam::${local.account_id}:oidc-provider/token.actions.githubusercontent.com"
 }
 
 # Trust: exact OIDC subjects per role, no wildcards.
@@ -175,7 +175,7 @@ data "aws_iam_policy_document" "github_plan" {
   }
 
   statement {
-    actions   = ["cloudfront:GetFunction", "cloudfront:DescribeFunction"]
+    actions   = ["cloudfront:GetFunction", "cloudfront:DescribeFunction", "cloudfront:ListTagsForResource"]
     resources = [aws_cloudfront_function.viewer_request.arn]
   }
 
