@@ -60,8 +60,10 @@ are retained for 90 days, and publish their identity at `/release.json`.
 
 ## GitHub setup
 
-- Import `.github/rulesets/main.json`: required PR, one independent approval,
-  resolved conversations, all quality checks, no force-push/deletion or bypass.
+- Import `.github/rulesets/main.json`: required PR, resolved conversations,
+  all quality checks, no force-push/deletion or bypass. It requires zero reviews
+  for a solo maintainer: GitHub does not count the PR author's own approval.
+  Require an independent approval if another maintainer joins.
 - Review Dependabot updates before merging; enable Dependabot alerts/security updates,
   secret scanning and push protection. Dependabot no longer auto-merges unreviewed code.
 - **Before setting `AWS_DEPLOY_ROLE_ARN`, restrict the GitHub environment
