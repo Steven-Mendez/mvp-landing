@@ -23,7 +23,7 @@ on:
         required: true
       app_url:
         type: string
-        required: true
+        default: ""
 
 permissions:
   contents: read

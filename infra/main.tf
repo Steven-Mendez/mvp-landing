@@ -5,8 +5,8 @@
 # Terraform creates the infrastructure; the CD workflow only uploads dist/ and
 # invalidates the cache, with the narrow role from github_oidc.tf.
 #
-# Deploy order: api (core) → web → landing. Without DNS the web build learns this site's
-# URL from landing/url, so re-run the web deploy once after the first landing deploy.
+# Standalone mode has no app dependency. For connected mode deploy api/core and web
+# first, then enable the integration. The web build reads this site's landing/url.
 
 locals {
   # AWS-managed policies, by id (no data source needed offline).
@@ -69,7 +69,8 @@ resource "aws_cloudfront_distribution" "landing" {
   }
 
   # The cache follows the Cache-Control the CD workflow sets per object: hashed _astro/*
-  # for a year, HTML and the rest revalidated (and invalidated on every deploy).
+  # for a year; HTML and other files have max-age=0. CachingOptimized imposes a
+  # one-second edge minimum; every publication also waits for invalidation.
   default_cache_behavior {
     target_origin_id           = "landing"
     viewer_protocol_policy     = "redirect-to-https"
