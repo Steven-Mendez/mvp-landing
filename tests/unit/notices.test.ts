@@ -7,12 +7,21 @@ describe("isNoticeId", () => {
     expect(isNoticeId(id)).toBe(true)
   })
 
-  it.each([null, "", " ", "unknown", "ACCOUNT-DELETED", "Account-Deleted", "Sign-Out-Failed", " account-deleted", "account-deleted ", "account", "<script>"])(
-    "rejects %j",
-    (id) => {
-      expect(isNoticeId(id)).toBe(false)
-    }
-  )
+  it.each([
+    null,
+    "",
+    " ",
+    "unknown",
+    "ACCOUNT-DELETED",
+    "Account-Deleted",
+    "Sign-Out-Failed",
+    " account-deleted",
+    "account-deleted ",
+    "account",
+    "<script>"
+  ])("rejects %j", (id) => {
+    expect(isNoticeId(id)).toBe(false)
+  })
 })
 
 describe("notices", () => {

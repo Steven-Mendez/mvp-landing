@@ -10,7 +10,9 @@ for (const [id, { message }] of Object.entries(notices)) {
   })
 }
 
-test("an unknown notice shows nothing and never loads the toast", async ({ page }) => {
+test("an unknown notice shows nothing and never loads the toast", async ({
+  page
+}) => {
   const scripts: string[] = []
   page.on("request", (request) => {
     if (request.resourceType() === "script") scripts.push(request.url())

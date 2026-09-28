@@ -12,7 +12,7 @@ async function render() {
 const links = (nav: Element | null) =>
   [...(nav?.querySelectorAll("a") ?? [])].map((a) => [
     a.textContent?.trim(),
-    a.getAttribute("href"),
+    a.getAttribute("href")
   ])
 
 describe("footer", () => {
@@ -27,12 +27,16 @@ describe("footer", () => {
 
   it("lists every section and customer stories under Explore", async () => {
     const doc = await render()
-    const nav = doc.querySelector('nav[aria-labelledby="footer-product-heading"]')
+    const nav = doc.querySelector(
+      'nav[aria-labelledby="footer-product-heading"]'
+    )
 
-    expect(doc.getElementById("footer-product-heading")?.textContent).toBe("Explore")
+    expect(doc.getElementById("footer-product-heading")?.textContent).toBe(
+      "Explore"
+    )
     expect(links(nav)).toEqual([
       ...landingNavigation.map(({ label, hash }) => [label, `/#${hash}`]),
-      ["Customer stories", "/#customer-stories"],
+      ["Customer stories", "/#customer-stories"]
     ])
   })
 
@@ -40,10 +44,12 @@ describe("footer", () => {
     const doc = await render()
     const nav = doc.querySelector('nav[aria-labelledby="footer-start-heading"]')
 
-    expect(doc.getElementById("footer-start-heading")?.textContent).toBe("Get started")
+    expect(doc.getElementById("footer-start-heading")?.textContent).toBe(
+      "Get started"
+    )
     expect(links(nav)).toEqual([
       ["Try it live", "http://localhost:3000/login?mode=sign-up"],
-      ["Sign in", "http://localhost:3000/login"],
+      ["Sign in", "http://localhost:3000/login"]
     ])
   })
 

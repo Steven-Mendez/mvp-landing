@@ -28,9 +28,19 @@ export class FakeIntersectionObserver {
   }
 
   /** Reports `target` entering (or leaving) the viewport. */
-  trigger(target: Element, isIntersecting = true, intersectionRatio = isIntersecting ? 1 : 0) {
+  trigger(
+    target: Element,
+    isIntersecting = true,
+    intersectionRatio = isIntersecting ? 1 : 0
+  ) {
     this.callback(
-      [{ target, isIntersecting, intersectionRatio } as IntersectionObserverEntry],
+      [
+        {
+          target,
+          isIntersecting,
+          intersectionRatio
+        } as IntersectionObserverEntry
+      ],
       this as unknown as IntersectionObserver
     )
   }
@@ -52,12 +62,14 @@ export function fakeMatchMedia(initial = false) {
   const listeners = new Set<() => void>()
   const query = {
     matches: initial,
-    addEventListener: (_: string, listener: () => void) => listeners.add(listener),
-    removeEventListener: (_: string, listener: () => void) => listeners.delete(listener),
+    addEventListener: (_: string, listener: () => void) =>
+      listeners.add(listener),
+    removeEventListener: (_: string, listener: () => void) =>
+      listeners.delete(listener),
     set(matches: boolean) {
       query.matches = matches
       for (const listener of listeners) listener()
-    },
+    }
   }
   vi.stubGlobal("matchMedia", () => query)
   return query
@@ -66,7 +78,10 @@ export function fakeMatchMedia(initial = false) {
 /** Controls `document.hidden` and fires `visibilitychange`. */
 export function fakeVisibility() {
   let hidden = false
-  Object.defineProperty(document, "hidden", { configurable: true, get: () => hidden })
+  Object.defineProperty(document, "hidden", {
+    configurable: true,
+    get: () => hidden
+  })
   return {
     set(value: boolean) {
       hidden = value
@@ -75,6 +90,6 @@ export function fakeVisibility() {
     restore() {
       // Drop the own property so jsdom's prototype getter applies again.
       delete (document as { hidden?: boolean }).hidden
-    },
+    }
   }
 }

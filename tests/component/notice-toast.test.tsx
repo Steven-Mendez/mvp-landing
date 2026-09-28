@@ -15,7 +15,7 @@ beforeAll(() => {
     addListener() {},
     removeListener() {},
     onchange: null,
-    dispatchEvent: () => false,
+    dispatchEvent: () => false
   })) as typeof window.matchMedia
 })
 
@@ -25,12 +25,15 @@ afterEach(() => {
 })
 
 describe("showNotice", () => {
-  it.each(Object.entries(notices))("shows the %s toast", async (id, { message }) => {
-    await act(async () => showNotice(id as keyof typeof notices))
+  it.each(Object.entries(notices))(
+    "shows the %s toast",
+    async (id, { message }) => {
+      await act(async () => showNotice(id as keyof typeof notices))
 
-    expect(await screen.findByText(message)).toBeInTheDocument()
-    expect(document.head.querySelector("style")?.textContent).toContain(
-      "[data-sonner-toaster]"
-    )
-  })
+      expect(await screen.findByText(message)).toBeInTheDocument()
+      expect(document.head.querySelector("style")?.textContent).toContain(
+        "[data-sonner-toaster]"
+      )
+    }
+  )
 })

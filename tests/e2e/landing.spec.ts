@@ -6,7 +6,9 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/")
 })
 
-test("loads with its title, heading and no console errors", async ({ page }) => {
+test("loads with its title, heading and no console errors", async ({
+  page
+}) => {
   const errors: string[] = []
   page.on("console", (message) => {
     if (message.type() === "error") errors.push(message.text())
@@ -31,7 +33,10 @@ test("in-page navigation reaches every section", async ({ page, isMobile }) => {
   }
 })
 
-test("the mobile menu opens, navigates and closes", async ({ page, isMobile }) => {
+test("the mobile menu opens, navigates and closes", async ({
+  page,
+  isMobile
+}) => {
   test.skip(!isMobile, "The menu button only shows on small screens")
   const trigger = page.getByRole("button", { name: "Open navigation" })
   const menu = page.getByRole("dialog", { name: site.name })
@@ -51,7 +56,9 @@ test("the mobile menu opens, navigates and closes", async ({ page, isMobile }) =
   await expect(page).toHaveURL(new RegExp(`#${hash}$`))
 })
 
-test("the catalog preview searches and switches views once hydrated", async ({ page }) => {
+test("the catalog preview searches and switches views once hydrated", async ({
+  page
+}) => {
   const search = page.getByRole("textbox", { name: "Search sample products" })
   const catalog = page.getByRole("list", { name: "Sample catalog" })
   const status = page.getByRole("status").filter({ hasText: "sample products" })
@@ -88,6 +95,17 @@ test("FAQ answers expand and collapse", async ({ page }) => {
 })
 
 test("sign up links point to the web app", async ({ page }) => {
+  if (!process.env.PUBLIC_APP_URL) {
+    await expect(page.locator('a[href*="/login"]')).toHaveCount(0)
+    const demo = page.getByRole("link", { name: "Explore the demo" }).first()
+    await demo.click()
+    await expect(page).toHaveURL(/#workspace$/)
+    await expect(page.locator("#workspace")).toBeInViewport()
+    return
+  }
   const signUp = page.locator('a[href$="/login?mode=sign-up"]').first()
-  await expect(signUp).toHaveAttribute("href", /^https?:\/\/[^/]+\/login\?mode=sign-up$/)
+  await expect(signUp).toHaveAttribute(
+    "href",
+    /^https?:\/\/[^/]+\/login\?mode=sign-up$/
+  )
 })

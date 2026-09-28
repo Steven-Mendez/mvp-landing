@@ -1,59 +1,70 @@
 # mvp-landing
 
-The kit's public landing page: a static Astro site with React islands and Tailwind. It
-runs on S3 + CloudFront, and "Sign in" and "Try it now" open the web app (`mvp-web`).
+The kit's public landing: static Astro, React islands and Tailwind on private S3 +
+CloudFront. It deploys independently with an on-page demo. Optionally connect
+`mvp-web` for sign-in/sign-up. MIT licensed; see [LICENSE](LICENSE).
 
-## Getting started
+## Local development
 
-Needs Node 22 and pnpm 11.
+Use Node from `.node-version` (Node 24 also supported) and pnpm 11.8.0.
 
 ```sh
-pnpm install
-cp .env.example .env   # optional: the defaults point at localhost
-pnpm dev               # http://localhost:4321
+pnpm install --frozen-lockfile
+cp .env.example .env        # optional; defaults use localhost
+pnpm dev                    # http://localhost:4321
 ```
 
-| Variable                | What                                                                    |
-| ----------------------- | ----------------------------------------------------------------------- |
-| `PUBLIC_APP_URL`        | the web app's origin, for "Sign in" and "Try it now"                    |
-| `PUBLIC_SITE_URL`       | this site's own origin, used for absolute `og:image` URLs               |
-| `PUBLIC_REPOSITORY_URL` | optional link to the kit's source; if blank, "Get the source" is hidden |
+| Build-time variable     | Purpose                                                     |
+| ----------------------- | ----------------------------------------------------------- |
+| `PUBLIC_APP_URL`        | Optional web app origin; blank keeps the landing standalone |
+| `PUBLIC_SITE_URL`       | Landing origin for canonical and social URLs                |
+| `PUBLIC_REPOSITORY_URL` | Optional HTTPS source link; blank hides it                  |
 
-These values are baked into the HTML at build time. Locally they come from `.env`; in
-production CD reads them from AWS (see [`infra/README.md`](infra/README.md)).
+Production defaults to standalone mode. Set repository variable `LANDING_MODE=connected`
+when the web app exists: CD then requires a valid HTTPS `web/url` in SSM. For local
+connected development, set `PUBLIC_APP_URL=http://localhost:3000`.
+See [infra/README.md](infra/README.md).
 
-## Scripts
+## Checks
 
-| Command              | What                                                                      |
-| -------------------- | ------------------------------------------------------------------------- |
-| `pnpm build`         | static build in `dist/`                                                   |
-| `pnpm check`         | type check (`astro check`)                                                |
-| `pnpm test`          | unit and component tests (Vitest)                                         |
-| `pnpm test:e2e`      | end-to-end and accessibility tests (Playwright, needs `pnpm build` first) |
-| `pnpm test:mutation` | mutation tests (Stryker)                                                  |
+```sh
+pnpm lint && pnpm format:check && pnpm check
+pnpm test:coverage && pnpm test:delivery
+pnpm exec playwright install chromium webkit  # once; add --with-deps on Linux
+pnpm build && pnpm test:e2e
+pnpm test:lighthouse                         # needs Chrome/Chromium
+pnpm infra:check                             # Terraform 1.15.4, TFLint 0.64.0
+```
 
-## CI/CD
+`pnpm format` applies formatting. `pnpm test` runs unit/component tests;
+`pnpm test:mutation` runs Stryker. E2E covers desktop Chromium, mobile Chromium and
+WebKit. Coverage floors: 95% lines/statements/functions, 90% branches; generated UI
+primitives are excluded. Delivery tests cover release integrity and smoke failures.
 
-| Workflow                   | When                      | What                                            |
-| -------------------------- | ------------------------- | ----------------------------------------------- |
-| `ci.yml`                   | pull requests             | types, build, unit, e2e, Terraform offline      |
-| `lighthouse.yml`           | pull requests             | performance, accessibility and SEO ≥ 90         |
-| `security.yml`             | pull requests, Mondays    | `pnpm audit`, Trivy on `infra/`                 |
-| `terraform.yml`            | pull requests to `infra/` | the prod plan as a comment                      |
-| `cd.yml`                   | push to `main`            | CI, then upload to S3 and invalidate CloudFront |
-| `mutation.yml`             | push to `main`            | Stryker, without blocking the deploy            |
-| `dependabot-automerge.yml` | Dependabot pull requests  | merges minor and patch updates once checks pass |
+## Delivery
 
-The infrastructure, the first deploy and the few GitHub variables CD needs are covered
-in [`infra/README.md`](infra/README.md). Deploy order across the repos: api → web → landing.
+| Workflow                         | Purpose                                                                                            |
+| -------------------------------- | -------------------------------------------------------------------------------------------------- |
+| CI                               | Lint, format, types, coverage, delivery tests, E2E, offline Terraform, actionlint                  |
+| Lighthouse                       | PR performance, accessibility and SEO ≥90                                                          |
+| Security                         | PR/CD and weekly dependency + infrastructure scans                                                 |
+| Terraform                        | Real prod plan on internal PRs; skipped before setup and for forks                                 |
+| CD                               | On `main`: CI/security → public settings → build/E2E/Lighthouse → retained artifact → deploy/smoke |
+| Rollback                         | Restore a successful CD artifact without rebuilding                                                |
+| Production health                | Every 30 minutes; open one incident and close it on recovery                                       |
+| Mutation / Dependabot auto-merge | Nonblocking mutation score; merge minor/patch updates after required checks                        |
 
-### Repository settings
+CD and rollback share a deployment queue. Build jobs have no AWS credentials;
+only publication can write the bucket. Artifacts contain a commit and checksums,
+are retained for 90 days, and publish their identity at `/release.json`.
 
-Not in any file, so set them by hand on a new copy of the template:
+## GitHub setup
 
-- **General:** allow auto-merge (Dependabot's minor and patch updates need it).
-- **Code security:** Dependabot alerts, secret scanning and push protection.
-- **Environments → `production`:** deployments from `main` only.
-- **Branches → `main`:** require a pull request and the status checks of CI, Lighthouse
-  and Security, with no bypass. Without it, a direct push to `main` deploys unchecked,
-  and auto-merge would not wait for the checks.
+- Import `.github/rulesets/main.json`: required PR, resolved conversations, all quality
+  checks, no force-push/deletion or bypass. It uses zero approvals for a solo maintainer;
+  require one independent approval when a second maintainer joins.
+- Allow auto-merge; enable Dependabot alerts/security updates, secret scanning and push protection.
+- Restrict environment `production` to `main`.
+- Set repository variable `OPERATIONS_OWNER` to the incident assignee. Enable GitHub
+  email/Actions notifications and watch issues; the monitor also fails its workflow.
+- AWS setup, deployment and recovery: [infra/README.md](infra/README.md).

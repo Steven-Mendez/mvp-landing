@@ -8,14 +8,19 @@ async function render(props: { inverse?: boolean } = {}) {
 }
 
 const signUp = (doc: Document) =>
-  [...doc.querySelectorAll("a")].find((a) => a.textContent?.includes("Try it live"))
+  [...doc.querySelectorAll("a")].find((a) =>
+    a.textContent?.includes("Try it live")
+  )
 
 describe("call to action", () => {
   it("links to sign up in the web app", async () => {
     const doc = await render()
     const link = signUp(doc)
 
-    expect(link).toHaveAttribute("href", "http://localhost:3000/login?mode=sign-up")
+    expect(link).toHaveAttribute(
+      "href",
+      "http://localhost:3000/login?mode=sign-up"
+    )
     expect(link?.textContent?.trim()).toBe("Try it live")
     expect(link?.querySelector("svg")).toHaveAttribute("aria-hidden", "true")
   })
@@ -31,7 +36,10 @@ describe("call to action", () => {
   })
 
   it("switches to the secondary button when inverse", async () => {
-    const [plain, inverse] = await Promise.all([render(), render({ inverse: true })])
+    const [plain, inverse] = await Promise.all([
+      render(),
+      render({ inverse: true })
+    ])
 
     expect(signUp(inverse)).toHaveAttribute("data-variant", "secondary")
     expect(signUp(inverse)?.getAttribute("class")).not.toBe(

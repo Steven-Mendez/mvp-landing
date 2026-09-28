@@ -20,9 +20,11 @@ const { product, compact = false } = Astro.props
 ---
 
 <figure
-  class={compact
-    ? "landing-app-preview landing-app-preview-compact"
-    : "landing-app-preview"}
+  class={
+    compact
+      ? "landing-app-preview landing-app-preview-compact"
+      : "landing-app-preview"
+  }
 >
   <figcaption class="landing-app-caption">
     <span>
@@ -30,18 +32,16 @@ const { product, compact = false } = Astro.props
     </span>
     <span>Preview</span>
   </figcaption>
-  {
-    !compact && (
-      <div class="landing-app-navigation" aria-hidden="true">
-        <span>
-          <ChevronLeft /> Products
-        </span>
-        <span class="text-primary">
-          <Pencil /> Edit
-        </span>
-      </div>
-    )
-  }
+  {!compact && (
+    <div class="landing-app-navigation" aria-hidden="true">
+      <span>
+        <ChevronLeft /> Products
+      </span>
+      <span class="text-primary">
+        <Pencil /> Edit
+      </span>
+    </div>
+  )}
   <div class="landing-app-content">
     <p class="font-medium text-base leading-snug">{product.name}</p>
     <p class="mt-2 flex items-center gap-1.5 text-success text-xs">
@@ -69,13 +69,11 @@ const { product, compact = false } = Astro.props
       format="webp"
       class="aspect-square w-full rounded-lg object-cover"
     />
-    {
-      !compact && (
-        <p class="mt-3 text-muted-foreground text-xs leading-relaxed">
-          {product.description}
-        </p>
-      )
-    }
+    {!compact && (
+      <p class="mt-3 text-muted-foreground text-xs leading-relaxed">
+        {product.description}
+      </p>
+    )}
   </div>
   <div class="landing-app-tabs" aria-hidden="true">
     <span>
@@ -98,19 +96,89 @@ const { product, compact = false } = Astro.props
 </figure>
 
 <style>
-  .landing-app-preview { overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-xl); background: var(--card); color: var(--foreground); font-family: var(--font-family-sans); }
-  .landing-app-caption { display: flex; justify-content: space-between; align-items: center; gap: .5rem; padding: .75rem; border-bottom: 1px solid var(--border); font-size: .6875rem; color: var(--muted-foreground); }
-  .landing-app-caption span, .landing-app-navigation span { display: inline-flex; align-items: center; gap: .25rem; }
-  .landing-app-preview :global(svg) { width: .875rem; height: .875rem; flex-shrink: 0; }
-  .landing-app-navigation { display: flex; justify-content: space-between; gap: .5rem; padding: .75rem; font-size: .6875rem; }
-  .landing-app-content { padding: .25rem .875rem 1rem; }
-  .landing-app-details { display: grid; grid-template-columns: 1fr 1fr; align-items: end; gap: .75rem; margin-block: .875rem; padding-top: .75rem; border-top: 1px solid var(--border); }
-  .landing-app-details dt { margin-bottom: .25rem; color: var(--muted-foreground); font-size: .6875rem; }
-  .landing-app-content :global(img) { aspect-ratio: 4 / 3; }
-  .landing-app-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: .25rem; padding: .625rem .5rem; border-top: 1px solid var(--border); color: var(--muted-foreground); font-size: .625rem; }
-  .landing-app-tabs span { display: flex; flex-direction: column; align-items: center; gap: .25rem; }
-  .landing-app-preview-compact .landing-app-caption { padding: .5rem .75rem; }
-  .landing-app-preview-compact .landing-app-content { padding: .75rem; }
-  .landing-app-preview-compact .landing-app-details { margin-block: .625rem; padding-top: .5rem; }
-  .landing-app-preview-compact .landing-app-content :global(img) { height: 6rem; aspect-ratio: auto; }
+  .landing-app-preview {
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--card);
+    color: var(--foreground);
+    font-family: var(--font-family-sans);
+  }
+  .landing-app-caption {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.6875rem;
+    color: var(--muted-foreground);
+  }
+  .landing-app-caption span,
+  .landing-app-navigation span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .landing-app-preview :global(svg) {
+    width: 0.875rem;
+    height: 0.875rem;
+    flex-shrink: 0;
+  }
+  .landing-app-navigation {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    font-size: 0.6875rem;
+  }
+  .landing-app-content {
+    padding: 0.25rem 0.875rem 1rem;
+  }
+  .landing-app-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: end;
+    gap: 0.75rem;
+    margin-block: 0.875rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+  }
+  .landing-app-details dt {
+    margin-bottom: 0.25rem;
+    color: var(--muted-foreground);
+    font-size: 0.6875rem;
+  }
+  .landing-app-content :global(img) {
+    aspect-ratio: 4 / 3;
+  }
+  .landing-app-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.25rem;
+    padding: 0.625rem 0.5rem;
+    border-top: 1px solid var(--border);
+    color: var(--muted-foreground);
+    font-size: 0.625rem;
+  }
+  .landing-app-tabs span {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .landing-app-preview-compact .landing-app-caption {
+    padding: 0.5rem 0.75rem;
+  }
+  .landing-app-preview-compact .landing-app-content {
+    padding: 0.75rem;
+  }
+  .landing-app-preview-compact .landing-app-details {
+    margin-block: 0.625rem;
+    padding-top: 0.5rem;
+  }
+  .landing-app-preview-compact .landing-app-content :global(img) {
+    height: 6rem;
+    aspect-ratio: auto;
+  }
 </style>

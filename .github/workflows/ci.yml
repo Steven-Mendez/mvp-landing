@@ -16,50 +16,60 @@ jobs:
   check:
     name: Types and build (astro check)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        with:
-          version: 11
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version-file: .node-version
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm format:check
       - run: pnpm check
       - run: pnpm build
 
   unit:
     name: Unit and component (Vitest)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        with:
-          version: 11
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version-file: .node-version
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm test
+      - run: pnpm test:coverage
+      - run: pnpm test:delivery
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: coverage
+          path: coverage
+          retention-days: 14
 
   e2e:
     name: End to end (Playwright)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        with:
-          version: 11
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version-file: .node-version
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm exec playwright install --with-deps chromium webkit
       - run: pnpm build
       - run: pnpm test:e2e
+      - name: Connected variant
+        run: pnpm build && pnpm test:e2e
+        env:
+          PUBLIC_APP_URL: http://localhost:3000
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:
@@ -72,6 +82,7 @@ jobs:
     # No account, no credentials: placeholder values stand in for the core stack's SSM
     # parameters and the GitHub OIDC provider (offline_validation).
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
@@ -85,21 +96,17 @@ jobs:
       - uses: terraform-linters/setup-tflint@1cf010d3c7aef302051ccdb68c14c5dc2efa34ef # v6.3.1
         with:
           tflint_version: v0.64.0
-      - run: terraform -chdir=infra fmt -check -recursive
-      - run: terraform -chdir=infra init -backend=false -input=false
-      - run: terraform -chdir=infra validate
-      - run: tflint --chdir=infra --init && tflint --chdir=infra
-      - name: Plan every environment, and prod with DNS and the GitHub roles
-        run: |
-          plan() {
-            terraform -chdir=infra plan -input=false -refresh=false -lock=false -compact-warnings \
-              -var offline_validation=true "$@" >/dev/null
-          }
-          for env in dev staging prod; do
-            echo "plan: $env"
-            plan -var-file="envs/$env/$env.tfvars"
-          done
-          echo "plan: prod with enable_dns and github_repository"
-          plan -var-file=envs/prod/prod.tfvars -var enable_dns=true \
-            -var github_repository=owner/mvp-landing -var github_owner_id=1 -var github_repository_id=2 \
-            -var tf_state_bucket=offline-state
+      - run: bash scripts/infra-check.sh
+
+  workflows:
+    name: Workflow validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version: "1.26.1"
+          cache: false
+      - run: go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+      - run: actionlint

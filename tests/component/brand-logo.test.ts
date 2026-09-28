@@ -6,7 +6,9 @@ import { createContainer, parse } from "./container"
 describe("<BrandLogo>", () => {
   it("names the brand by default and loads lazily", async () => {
     const container = await createContainer()
-    const img = parse(await container.renderToString(BrandLogo)).querySelector("img")
+    const img = parse(await container.renderToString(BrandLogo)).querySelector(
+      "img"
+    )
 
     expect(img).toHaveAttribute("alt", site.name)
     expect(img).toHaveAttribute("width", "40")
@@ -17,7 +19,7 @@ describe("<BrandLogo>", () => {
   it("is hidden from assistive tech when decorative, and eager with priority", async () => {
     const container = await createContainer()
     const html = await container.renderToString(BrandLogo, {
-      props: { decorative: true, priority: true, class: "mb-3" },
+      props: { decorative: true, priority: true, class: "mb-3" }
     })
     const img = parse(html).querySelector("img")
 

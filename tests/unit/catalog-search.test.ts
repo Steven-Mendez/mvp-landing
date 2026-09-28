@@ -5,7 +5,7 @@ const products = [
   { name: "Desk collection", sku: "DSK-001" },
   { name: "Everyday tote", sku: "TOT-001" },
   { name: "Studio headphones", sku: "AUD-001" },
-  { name: "Écharpe", sku: "SCF-002" },
+  { name: "Écharpe", sku: "SCF-002" }
 ]
 const names = (list: { name: string }[]) => list.map(({ name }) => name)
 
@@ -17,7 +17,7 @@ describe("normalizeQuery", () => {
     ["Tote", "tote"],
     ["  TOTE  ", "tote"],
     ["Desk Lamp", "desk lamp"],
-    ["É", "é"],
+    ["É", "é"]
   ])("normalizes %j to %j", (search, expected) => {
     expect(normalizeQuery(search)).toBe(expected)
   })
@@ -34,15 +34,21 @@ describe("filterProducts", () => {
 
   it("matches the name case-insensitively", () => {
     expect(names(filterProducts(products, "TOTE"))).toEqual(["Everyday tote"])
-    expect(names(filterProducts(products, "desk COLL"))).toEqual(["Desk collection"])
+    expect(names(filterProducts(products, "desk COLL"))).toEqual([
+      "Desk collection"
+    ])
   })
 
   it("matches part of a name", () => {
-    expect(names(filterProducts(products, "phone"))).toEqual(["Studio headphones"])
+    expect(names(filterProducts(products, "phone"))).toEqual([
+      "Studio headphones"
+    ])
   })
 
   it("matches the SKU case-insensitively", () => {
-    expect(names(filterProducts(products, "aud-001"))).toEqual(["Studio headphones"])
+    expect(names(filterProducts(products, "aud-001"))).toEqual([
+      "Studio headphones"
+    ])
     expect(names(filterProducts(products, "SCF"))).toEqual(["Écharpe"])
   })
 
@@ -54,22 +60,26 @@ describe("filterProducts", () => {
     expect(names(filterProducts(products, "001"))).toEqual([
       "Desk collection",
       "Everyday tote",
-      "Studio headphones",
+      "Studio headphones"
     ])
     expect(names(filterProducts(products, "o"))).toEqual([
       "Desk collection",
       "Everyday tote",
-      "Studio headphones",
+      "Studio headphones"
     ])
   })
 
   it("ignores surrounding whitespace", () => {
-    expect(names(filterProducts(products, "  tote \n"))).toEqual(["Everyday tote"])
+    expect(names(filterProducts(products, "  tote \n"))).toEqual([
+      "Everyday tote"
+    ])
   })
 
   it("does not ignore inner whitespace", () => {
     expect(filterProducts(products, "everydaytote")).toEqual([])
-    expect(names(filterProducts(products, "everyday tote"))).toEqual(["Everyday tote"])
+    expect(names(filterProducts(products, "everyday tote"))).toEqual([
+      "Everyday tote"
+    ])
   })
 
   it("matches unicode case-insensitively", () => {
@@ -84,7 +94,10 @@ describe("filterProducts", () => {
   })
 
   it("lowercases the product fields, not only the query", () => {
-    const upper = [{ name: "TOTE", sku: "ABC" }, { name: "x", sku: "SKU-9" }]
+    const upper = [
+      { name: "TOTE", sku: "ABC" },
+      { name: "x", sku: "SKU-9" }
+    ]
     expect(filterProducts(upper, "tote")).toEqual([upper[0]])
     expect(filterProducts(upper, "sku-9")).toEqual([upper[1]])
   })

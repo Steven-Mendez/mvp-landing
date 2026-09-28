@@ -6,7 +6,7 @@ export const MISSING = "—"
 
 const price = new Intl.NumberFormat(DISPLAY_LOCALE, {
   style: "currency",
-  currency: DISPLAY_CURRENCY,
+  currency: DISPLAY_CURRENCY
 })
 
 export function formatPrice(amount: string): string {

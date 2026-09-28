@@ -5,10 +5,7 @@ import RootLayout from "@/layouts/root-layout.astro"
 import { pageTitle, site } from "@/site"
 ---
 
-<RootLayout
-  title={pageTitle(site.tagline)}
-  description={site.description}
->
+<RootLayout title={pageTitle(site.tagline)} description={site.description}>
   <LandingPage />
   <NoticeCheck />
 </RootLayout>

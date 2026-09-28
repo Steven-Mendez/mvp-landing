@@ -16,11 +16,15 @@ function handler(event) {
         query.push(values[i].value === "" ? key : key + "=" + values[i].value)
       }
     }
-    var location = "https://" + host.slice(4) + request.uri + (query.length ? "?" + query.join("&") : "")
+    var location =
+      "https://" +
+      host.slice(4) +
+      request.uri +
+      (query.length ? "?" + query.join("&") : "")
     return {
       statusCode: 301,
       statusDescription: "Moved Permanently",
-      headers: { location: { value: location } },
+      headers: { location: { value: location } }
     }
   }
 

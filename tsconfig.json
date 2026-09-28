@@ -1,19 +1,22 @@
 {
   "extends": "astro/tsconfigs/strict",
-  "include": [
-    ".astro/types.d.ts",
-    "**/*"
-  ],
+  "include": [".astro/types.d.ts", "**/*"],
   "exclude": [
-    "dist"
+    "dist",
+    "coverage",
+    "reports",
+    "test-results",
+    "playwright-report",
+    ".lighthouseci",
+    ".stryker-tmp",
+    ".shadcn-backup",
+    "infra/.terraform"
   ],
   "compilerOptions": {
     "jsx": "react-jsx",
     "jsxImportSource": "react",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     }
   }
 }

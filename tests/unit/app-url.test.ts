@@ -12,8 +12,19 @@ async function load(appUrl: string) {
 }
 
 describe("app links", () => {
+  it("offers the on-page demo without an application", async () => {
+    const { appEnabled, primaryCta, signInHref } = await load("")
+    expect(appEnabled).toBe(false)
+    expect(primaryCta).toEqual({
+      href: "/#workspace",
+      label: "Explore the demo"
+    })
+    expect(signInHref).toThrow("not connected")
+  })
   it("joins the app origin and the path", async () => {
-    const { appHref, signInHref, signUpHref } = await load("https://app.example.com")
+    const { appHref, signInHref, signUpHref } = await load(
+      "https://app.example.com"
+    )
     expect(appHref("/settings")).toBe("https://app.example.com/settings")
     expect(signInHref()).toBe("https://app.example.com/login")
     expect(signUpHref()).toBe("https://app.example.com/login?mode=sign-up")

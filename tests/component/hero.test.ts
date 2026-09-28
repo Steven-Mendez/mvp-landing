@@ -36,7 +36,10 @@ describe("hero", () => {
       a.textContent?.includes("Try it live")
     )
 
-    expect(cta).toHaveAttribute("href", "http://localhost:3000/login?mode=sign-up")
+    expect(cta).toHaveAttribute(
+      "href",
+      "http://localhost:3000/login?mode=sign-up"
+    )
     expect(cta).toHaveAttribute("data-variant", "default")
   })
 
@@ -60,7 +63,7 @@ describe("hero", () => {
       "Web, iOS & Android",
       "Accounts & workspaces",
       "Typed API client",
-      "Tested & CI-ready",
+      "Tested & CI-ready"
     ])
     for (const item of items) {
       expect(item.querySelector("svg")).toHaveAttribute("aria-hidden", "true")

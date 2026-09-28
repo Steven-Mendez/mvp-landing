@@ -19,7 +19,9 @@ describe("notice entry", () => {
     await visit("/?notice=account-deleted&keep=1#faq")
 
     expect(showNotice).toHaveBeenCalledExactlyOnceWith("account-deleted")
-    expect(`${location.pathname}${location.search}${location.hash}`).toBe("/?keep=1#faq")
+    expect(`${location.pathname}${location.search}${location.hash}`).toBe(
+      "/?keep=1#faq"
+    )
     expect(window.history.state).toEqual({ scroll: 1 })
   })
 

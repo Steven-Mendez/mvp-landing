@@ -3,7 +3,7 @@ const entrances: Record<string, string> = {
   workspace: "translate3d(0, 40px, 0) scale(.97)",
   phone: "translate3d(24px, 40px, 0) rotate(3deg) scale(.97)",
   left: "translate3d(-24px, 24px, 0)",
-  right: "translate3d(24px, 24px, 0)",
+  right: "translate3d(24px, 24px, 0)"
 }
 
 /**
@@ -46,7 +46,7 @@ export function startLandingMotion(container: HTMLElement): () => void {
           const element = target as HTMLElement
           return {
             element,
-            transform: getComputedStyle(element).transform,
+            transform: getComputedStyle(element).transform
           }
         })
       for (const { element, transform } of arriving) {
@@ -62,13 +62,13 @@ export function startLandingMotion(container: HTMLElement): () => void {
         const animation = element.animate(
           [
             { opacity: 0, transform: `${resting} ${from}` },
-            { opacity: 1, transform },
+            { opacity: 1, transform }
           ],
           {
             duration: 900,
             delay: Number(element.dataset.revealDelay ?? 0),
             easing: "cubic-bezier(.23,1,.32,1)",
-            fill: "backwards",
+            fill: "backwards"
           }
         )
         animations.add(animation)
@@ -82,7 +82,7 @@ export function startLandingMotion(container: HTMLElement): () => void {
   ).map((element) => ({
     element,
     // Even a sliver already on screen must never disappear and enter again.
-    alreadyVisible: element.getBoundingClientRect().top < window.innerHeight,
+    alreadyVisible: element.getBoundingClientRect().top < window.innerHeight
   }))
   for (const { element, alreadyVisible } of targets) {
     if (alreadyVisible || preference.matches || revealed.has(element)) {
@@ -105,8 +105,11 @@ export function startLandingMotion(container: HTMLElement): () => void {
     }
   }
   const onFocus = (event: FocusEvent) => {
-    cancelAnimations()
     if (!(event.target instanceof Element)) return
+    // A pointer focus happens between press and release. Jumping the link to its
+    // resting position here can swallow the tap; only keyboard focus stops motion.
+    if (!event.target.matches(":focus-visible")) return
+    cancelAnimations()
     const hero = event.target.closest<HTMLElement>(".landing-hero-copy")
     // Keep this flag after blur; removing animation:none would restart CSS.
     if (hero) hero.dataset.motionComplete = ""

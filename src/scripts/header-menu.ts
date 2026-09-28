@@ -4,7 +4,9 @@
  * Returns the cleanup.
  */
 export function startHeaderMenu(root: HTMLElement): () => void {
-  const trigger = root.querySelector<HTMLButtonElement>("[data-header-menu-open]")
+  const trigger = root.querySelector<HTMLButtonElement>(
+    "[data-header-menu-open]"
+  )
   const dialog = root.querySelector("dialog")
   if (!trigger || !dialog) return () => {}
 
