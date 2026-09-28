@@ -47,22 +47,24 @@ Deploy the stacks in this order: api (core) → web → landing. The GitHub OIDC
 the state bucket come from `mvp-api/infra/bootstrap`.
 
 1. **Apply** with administrator credentials. The values that depend on your account and
-   repository are passed on the command line, never committed:
+   repository are never committed: export them once per shell, and every later `plan` or
+   `apply` picks them up (`TF_VAR_*`):
 
    ```sh
    BUCKET=<project>-terraform-state-<account_id>   # the state bucket from the bootstrap
    REPO=<owner>/<name>                              # this repository on GitHub
+   export TF_VAR_tf_state_bucket="$BUCKET" TF_VAR_github_repository="$REPO"
+   export TF_VAR_github_owner_id="$(gh api "repos/$REPO" --jq .owner.id)"
+   export TF_VAR_github_repository_id="$(gh api "repos/$REPO" --jq .id)"
+
    cp infra/backend.tf.example infra/backend.tf
    terraform -chdir=infra init -backend-config=envs/prod/backend.hcl -backend-config="bucket=$BUCKET"
-   terraform -chdir=infra apply -var-file=envs/prod/prod.tfvars \
-     -var "tf_state_bucket=$BUCKET" -var "github_repository=$REPO" \
-     -var "github_owner_id=$(gh api "repos/$REPO" --jq .owner.id)" \
-     -var "github_repository_id=$(gh api "repos/$REPO" --jq .id)"
+   terraform -chdir=infra apply -var-file=envs/prod/prod.tfvars
    ```
 
    The IDs match GitHub's immutable OIDC subject, which new repositories use; without them
-   the roles trust only the name-only form. Leave out every `-var` flag to apply without
-   the GitHub roles (no CD).
+   the roles trust only the name-only form. Without any of these variables the stack has
+   no GitHub roles (no CD).
 
 2. **Set the GitHub variables.** AWS is the source of truth: the stack writes the bucket,
    the distribution and the URLs to SSM, and CD reads them there (and the project and
@@ -88,8 +90,15 @@ the state bucket come from `mvp-api/infra/bootstrap`.
 3. **Without DNS**, run the web deploy again. It reads this site's URL from `landing/url`,
    which exists only after this first apply.
 
-From then on every push to `main` passes CI and publishes the site. Apply changes to
-`infra/` yourself after merging; the pull request shows their plan first.
+## Day to day
+
+- **The site:** every push to `main` passes CI and publishes it. Nothing to do.
+- **The infrastructure:** a pull request that touches `infra/` shows the prod plan as a
+  comment. After merging, apply it yourself (same `TF_VAR_*` exports as above):
+  `terraform -chdir=infra apply -var-file=envs/prod/prod.tfvars`.
+- **A value changed** (a domain, the web app's URL): nothing in GitHub. The stack rewrites
+  `landing/*` on apply, mvp-web rewrites `web/url` on its deploy, and the next CD run reads
+  them. Only a renamed role or state bucket means updating the three variables above.
 
 ## Contract with the other stacks
 

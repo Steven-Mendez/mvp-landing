@@ -19,7 +19,8 @@ pnpm dev               # http://localhost:4321
 | `PUBLIC_SITE_URL`       | this site's own origin, used for absolute `og:image` URLs               |
 | `PUBLIC_REPOSITORY_URL` | optional link to the kit's source; if blank, "Get the source" is hidden |
 
-These values are baked into the HTML at build time.
+These values are baked into the HTML at build time. Locally they come from `.env`; in
+production CD reads them from AWS (see [`infra/README.md`](infra/README.md)).
 
 ## Scripts
 
@@ -43,5 +44,16 @@ These values are baked into the HTML at build time.
 | `mutation.yml`             | push to `main`            | Stryker, without blocking the deploy            |
 | `dependabot-automerge.yml` | Dependabot pull requests  | merges minor and patch updates once checks pass |
 
-The infrastructure and setting up the first deploy are covered in
-[`infra/README.md`](infra/README.md). Deploy order across the repos: api → web → landing.
+The infrastructure, the first deploy and the few GitHub variables CD needs are covered
+in [`infra/README.md`](infra/README.md). Deploy order across the repos: api → web → landing.
+
+### Repository settings
+
+Not in any file, so set them by hand on a new copy of the template:
+
+- **General:** allow auto-merge (Dependabot's minor and patch updates need it).
+- **Code security:** Dependabot alerts, secret scanning and push protection.
+- **Environments → `production`:** deployments from `main` only.
+- **Branches → `main`:** require a pull request and the status checks of CI, Lighthouse
+  and Security, with no bypass. Without it, a direct push to `main` deploys unchecked,
+  and auto-merge would not wait for the checks.
