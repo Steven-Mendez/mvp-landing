@@ -43,16 +43,16 @@ primitives are excluded. Delivery tests cover release integrity and smoke failur
 
 ## Delivery
 
-| Workflow                         | Purpose                                                                                            |
-| -------------------------------- | -------------------------------------------------------------------------------------------------- |
-| CI                               | Lint, format, types, coverage, delivery tests, E2E, offline Terraform, actionlint                  |
-| Lighthouse                       | PR performance, accessibility and SEO ≥90                                                          |
-| Security                         | PR/CD and weekly dependency + infrastructure scans                                                 |
-| Terraform                        | Real prod plan on internal PRs; skipped before setup and for forks                                 |
-| CD                               | On `main`: CI/security → public settings → build/E2E/Lighthouse → retained artifact → deploy/smoke |
-| Rollback                         | Restore a successful CD artifact without rebuilding                                                |
-| Production health                | Every 30 minutes; open one incident and close it on recovery                                       |
-| Mutation / Dependabot auto-merge | Nonblocking mutation score; merge minor/patch updates after required checks                        |
+| Workflow          | Purpose                                                                                            |
+| ----------------- | -------------------------------------------------------------------------------------------------- |
+| CI                | Lint, format, types, coverage, delivery tests, E2E, offline Terraform, actionlint                  |
+| Lighthouse        | PR performance, accessibility and SEO ≥90                                                          |
+| Security          | PR/CD and weekly dependency + infrastructure scans                                                 |
+| Terraform         | Offline prod plan on PRs; no AWS token or real state                                               |
+| CD                | On `main`: CI/security → public settings → build/E2E/Lighthouse → retained artifact → deploy/smoke |
+| Rollback          | Restore a successful CD artifact without rebuilding                                                |
+| Production health | Every 30 minutes; open one incident and close it on recovery                                       |
+| Mutation          | Nonblocking mutation score                                                                         |
 
 CD and rollback share a deployment queue. Build jobs have no AWS credentials;
 only publication can write the bucket. Artifacts contain a commit and checksums,
@@ -60,11 +60,16 @@ are retained for 90 days, and publish their identity at `/release.json`.
 
 ## GitHub setup
 
-- Import `.github/rulesets/main.json`: required PR, resolved conversations, all quality
-  checks, no force-push/deletion or bypass. It uses zero approvals for a solo maintainer;
-  require one independent approval when a second maintainer joins.
-- Allow auto-merge; enable Dependabot alerts/security updates, secret scanning and push protection.
-- Restrict environment `production` to `main`.
+- Import `.github/rulesets/main.json`: required PR, one independent approval,
+  resolved conversations, all quality checks, no force-push/deletion or bypass.
+- Review Dependabot updates before merging; enable Dependabot alerts/security updates,
+  secret scanning and push protection. Dependabot no longer auto-merges unreviewed code.
+- **Before setting `AWS_DEPLOY_ROLE_ARN`, restrict the GitHub environment
+  `production` to the protected `main` branch (deployment branches: selected
+  branches → `main`) and verify this rule in Settings → Environments.** The OIDC
+  role trusts the environment name, not the branch; a workflow on another branch
+  could otherwise request production credentials. Re-check this rule after
+  renaming the environment or moving repositories.
 - Set repository variable `OPERATIONS_OWNER` to the incident assignee. Enable GitHub
   email/Actions notifications and watch issues; the monitor also fails its workflow.
 - AWS setup, deployment and recovery: [infra/README.md](infra/README.md).

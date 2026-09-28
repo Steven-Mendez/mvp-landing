@@ -38,24 +38,27 @@ variable "offline_validation" {
 }
 
 variable "github_repository" {
-  description = "owner/name of this repository on GitHub. Set, it creates the roles the CD and Terraform workflows assume through OIDC (github_oidc.tf); blank creates none."
+  description = "owner/name of this repository on GitHub. Set, it creates the CD roles through OIDC (github_oidc.tf); blank creates none."
   type        = string
   default     = ""
 
   validation {
-    condition     = var.github_repository == "" || can(regex("^[A-Za-z0-9-]+/[A-Za-z0-9._-]+$", var.github_repository))
-    error_message = "github_repository must be owner/name."
+    condition = var.github_repository == "" || (
+      can(regex("^[A-Za-z0-9-]+/[A-Za-z0-9._-]+$", var.github_repository)) &&
+      var.github_owner_id != null && var.github_repository_id != null
+    )
+    error_message = "github_repository must be owner/name, with github_owner_id and github_repository_id set for immutable OIDC subjects."
   }
 }
 
 variable "github_owner_id" {
-  description = "Numeric ID of the repository's owner (gh api repos/<owner>/<repo> --jq .owner.id). With github_repository_id, the roles also trust GitHub's immutable OIDC subject, which new repositories use."
+  description = "Numeric ID of the repository's owner (gh api repos/<owner>/<repo> --jq .owner.id). Required with github_repository."
   type        = number
   default     = null
 }
 
 variable "github_repository_id" {
-  description = "Numeric ID of the repository (gh api repos/<owner>/<repo> --jq .id)."
+  description = "Numeric ID of the repository (gh api repos/<owner>/<repo> --jq .id). Required with github_repository."
   type        = number
   default     = null
 }
@@ -64,10 +67,4 @@ variable "github_environment" {
   description = "GitHub environment the deploy job runs in; only it may assume the deploy role."
   type        = string
   default     = "production"
-}
-
-variable "tf_state_bucket" {
-  description = "The Terraform state bucket (envs/<env>/backend.hcl): the plan role reads this stack's state in it and writes its lock file. Required with github_repository."
-  type        = string
-  default     = ""
 }

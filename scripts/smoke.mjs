@@ -1,5 +1,6 @@
 import assert from "node:assert/strict"
 import { setTimeout } from "node:timers/promises"
+import { verifyCsp } from "./csp.mjs"
 import { validateConfig } from "./deployment.mjs"
 
 export async function smoke(config, expectedSha, fetcher = fetch) {
@@ -19,6 +20,7 @@ export async function smoke(config, expectedSha, fetcher = fetch) {
   const response = await get(`${site_url}/`)
   assert.match(response.headers.get("content-type") || "", /text\/html/)
   const html = await response.text()
+  verifyCsp(html)
   assert(
     html.includes(`rel="canonical" href="${site_url}/"`),
     "Incorrect canonical URL"
@@ -45,7 +47,11 @@ export async function smoke(config, expectedSha, fetcher = fetch) {
       "Standalone mode must offer its on-page demo"
     )
   }
-  await get(`${site_url}/__deployment_check_missing_page__`, 404)
+  const notFound = await get(
+    `${site_url}/__deployment_check_missing_page__`,
+    404
+  )
+  verifyCsp(await notFound.text())
   const release = await (await get(`${site_url}/release.json`)).json()
   assert.match(release.sha, /^[a-f0-9]{40}$/)
   if (expectedSha)

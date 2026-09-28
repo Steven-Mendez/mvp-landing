@@ -6,8 +6,10 @@
 function handler(event) {
   var request = event.request
   var host = request.headers.host ? request.headers.host.value : ""
+  var wwwDomain = "__WWW_DOMAIN__"
 
-  if (host.indexOf("www.") === 0) {
+  // Only our configured alias may redirect. Never derive the destination from Host.
+  if (wwwDomain && host.toLowerCase() === wwwDomain) {
     var query = []
     for (var key in request.querystring) {
       var param = request.querystring[key]
@@ -18,7 +20,7 @@ function handler(event) {
     }
     var location =
       "https://" +
-      host.slice(4) +
+      "__LANDING_DOMAIN__" +
       request.uri +
       (query.length ? "?" + query.join("&") : "")
     return {

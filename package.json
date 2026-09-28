@@ -11,7 +11,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build && node scripts/csp.mjs",
     "preview": "astro preview",
     "check": "astro check",
     "lint": "eslint .",
@@ -27,7 +27,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "test:all": "vitest run && astro build && playwright test",
+    "test:all": "vitest run && pnpm build && playwright test",
     "test:mutation": "stryker run"
   },
   "dependencies": {

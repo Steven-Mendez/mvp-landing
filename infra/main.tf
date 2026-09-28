@@ -50,7 +50,10 @@ resource "aws_cloudfront_function" "viewer_request" {
   runtime = "cloudfront-js-2.0"
   comment = "index.html for directory URLs; www redirects to the apex"
   publish = true
-  code    = file("${path.module}/functions/viewer_request.js")
+  code = replace(replace(
+    file("${path.module}/functions/viewer_request.js"),
+    "\"__WWW_DOMAIN__\"", jsonencode(local.www_domain)
+  ), "\"__LANDING_DOMAIN__\"", jsonencode(local.landing_domain))
 }
 
 resource "aws_cloudfront_distribution" "landing" {
