@@ -136,7 +136,10 @@ data "aws_iam_policy_document" "github_plan" {
   }
 
   statement {
-    actions   = ["s3:GetBucket*", "s3:GetEncryptionConfiguration", "s3:GetLifecycleConfiguration"]
+    actions = [
+      "s3:GetBucket*", "s3:GetEncryptionConfiguration", "s3:GetLifecycleConfiguration",
+      "s3:GetAccelerateConfiguration", "s3:GetReplicationConfiguration",
+    ]
     resources = [aws_s3_bucket.landing.arn]
   }
 
