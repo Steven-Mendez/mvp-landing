@@ -3,7 +3,10 @@ import { expect, test } from "@playwright/test"
 
 // The web app (PUBLIC_APP_URL) is another origin that is not running here: answer
 // its requests so the CTAs can be followed end to end.
-const APP_ORIGIN = "http://localhost:3000"
+const APP_ORIGIN = (
+  process.env.PUBLIC_APP_URL || "http://localhost:3000"
+).replace(/\/+$/, "")
+const connected = Boolean(process.env.PUBLIC_APP_URL)
 
 test.beforeEach(async ({ page }) => {
   // The hero copy runs a CSS entrance; test the settled page.
@@ -13,21 +16,32 @@ test.beforeEach(async ({ page }) => {
   )
 })
 
-test("the home page has no detectable accessibility violations", async ({ page }) => {
+test("the home page has no detectable accessibility violations", async ({
+  page
+}) => {
   await page.goto("/")
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
     .analyze()
 
-  expect(results.violations.map(({ id, nodes }) => `${id} (${nodes.length})`)).toEqual([])
+  expect(
+    results.violations.map(({ id, nodes }) => `${id} (${nodes.length})`)
+  ).toEqual([])
 })
 
 for (const { name, url } of [
   { name: /try it live/i, url: `${APP_ORIGIN}/login?mode=sign-up` },
-  { name: /^sign in$/i, url: `${APP_ORIGIN}/login` },
+  { name: /^sign in$/i, url: `${APP_ORIGIN}/login` }
 ]) {
-  test(`the "${name.source}" call to action opens the web app`, async ({ page, isMobile }) => {
-    test.skip(isMobile && name.source.includes("sign in"), "Sign in lives in the mobile menu")
+  test(`the "${name.source}" call to action opens the web app`, async ({
+    page,
+    isMobile
+  }) => {
+    test.skip(!connected, "The standalone landing offers an on-page demo")
+    test.skip(
+      isMobile && name.source.includes("sign in"),
+      "Sign in lives in the mobile menu"
+    )
     await page.goto("/")
     await page.getByRole("link", { name }).first().click()
     await expect(page).toHaveURL(url)
@@ -44,7 +58,9 @@ test("the explore link scrolls to the product preview", async ({ page }) => {
 test("the page never scrolls sideways", async ({ page }) => {
   await page.goto("/")
   const overflow = await page.evaluate(
-    () => document.documentElement.scrollWidth - document.documentElement.clientWidth
+    () =>
+      document.documentElement.scrollWidth -
+      document.documentElement.clientWidth
   )
   expect(overflow).toBeLessThanOrEqual(0)
 })
@@ -56,4 +72,26 @@ test("the colour scheme follows the operating system", async ({ page }) => {
 
   await page.emulateMedia({ colorScheme: "light" })
   await expect(page.locator("html")).toHaveClass(/\blight\b/)
+})
+
+test("testimonials can be paused and resumed using the keyboard", async ({
+  page
+}) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" })
+  await page.goto("/")
+  const pause = page.getByRole("button", { name: "Pause testimonials" })
+  await pause.scrollIntoViewIfNeeded()
+  await pause.focus()
+  await page.keyboard.press("Space")
+  await expect(pause).toHaveAttribute("aria-pressed", "true")
+  await expect(page.locator("#testimonial-track")).toHaveAttribute(
+    "data-running",
+    "false"
+  )
+  await page.keyboard.press("Space")
+  await expect(pause).toHaveAttribute("aria-pressed", "false")
+  await expect(page.locator("#testimonial-track")).toHaveAttribute(
+    "data-running",
+    "true"
+  )
 })

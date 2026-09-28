@@ -56,7 +56,11 @@ const products = await toCatalogProducts(demoProducts, optimizedImage)
       <CatalogDemo client:idle products={products} />
     </div>
   </div>
-  <div class="landing-mobile-preview" data-reveal="phone" data-reveal-delay="160">
+  <div
+    class="landing-mobile-preview"
+    data-reveal="phone"
+    data-reveal-delay="160"
+  >
     <MobileAppPreview product={product} />
   </div>
 </div>
@@ -77,9 +81,9 @@ const products = await toCatalogProducts(demoProducts, optimizedImage)
     display: flex;
     justify-content: space-between;
     gap: 1rem;
-    margin-bottom: .5rem;
+    margin-bottom: 0.5rem;
     color: var(--primary-foreground);
-    font-size: .75rem;
+    font-size: 0.75rem;
   }
   .landing-workspace {
     display: flex;
@@ -87,7 +91,7 @@ const products = await toCatalogProducts(demoProducts, optimizedImage)
     border: 1px solid var(--border);
     border-radius: var(--radius-xl);
     background: var(--card);
-    transform: rotate(-.6deg);
+    transform: rotate(-0.6deg);
     transform-origin: center;
   }
   .landing-preview-sidebar {
@@ -107,14 +111,30 @@ const products = await toCatalogProducts(demoProducts, optimizedImage)
     pointer-events: none;
   }
   @media (max-width: 1023px) {
-    .landing-stage { display: block; padding: 1.5rem 2rem 2rem; }
-    .landing-stage-caption { margin-bottom: 1.5rem; }
-    .landing-preview-sidebar { display: none; }
-    .landing-mobile-preview { display: none; }
-    .landing-workspace { transform: none; }
+    .landing-stage {
+      display: block;
+      padding: 1.5rem 2rem 2rem;
+    }
+    .landing-stage-caption {
+      margin-bottom: 1.5rem;
+    }
+    .landing-preview-sidebar {
+      display: none;
+    }
+    .landing-mobile-preview {
+      display: none;
+    }
+    .landing-workspace {
+      transform: none;
+    }
   }
   @media (max-width: 639px) {
-    .landing-stage { padding: 1.25rem .625rem .625rem; }
-    .landing-stage-caption { margin-bottom: 1.25rem; padding-inline: .5rem; }
+    .landing-stage {
+      padding: 1.25rem 0.625rem 0.625rem;
+    }
+    .landing-stage-caption {
+      margin-bottom: 1.25rem;
+      padding-inline: 0.5rem;
+    }
   }
 </style>

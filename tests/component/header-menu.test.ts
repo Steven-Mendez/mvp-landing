@@ -11,7 +11,7 @@ async function render(repository: string | undefined = undefined) {
   const container = await createContainer()
   return parse(
     await container.renderToString(HeaderMenu, {
-      props: { repository, signUpHref: SIGN_UP },
+      props: { repository, signUpHref: SIGN_UP }
     })
   )
 }
@@ -40,11 +40,16 @@ describe("header menu", () => {
     expect(dialog?.tagName).toBe("DIALOG")
     expect(dialog).not.toHaveAttribute("open")
     expect(dialog).toHaveAttribute("aria-labelledby", "landing-menu-title")
-    expect(dialog).toHaveAttribute("aria-describedby", "landing-menu-description")
-    expect(doc.getElementById("landing-menu-title")?.textContent?.trim()).toBe(site.name)
-    expect(doc.getElementById("landing-menu-description")?.textContent?.trim()).toBe(
-      `${site.tagline}.`
+    expect(dialog).toHaveAttribute(
+      "aria-describedby",
+      "landing-menu-description"
     )
+    expect(doc.getElementById("landing-menu-title")?.textContent?.trim()).toBe(
+      site.name
+    )
+    expect(
+      doc.getElementById("landing-menu-description")?.textContent?.trim()
+    ).toBe(`${site.tagline}.`)
   })
 
   it("links every section and closes on navigation", async () => {
@@ -52,10 +57,11 @@ describe("header menu", () => {
     const nav = doc.querySelector('nav[aria-label="Mobile navigation"]')
     const links = [...(nav?.querySelectorAll("a") ?? [])]
 
-    expect(links.map((a) => [a.textContent?.trim(), a.getAttribute("href")])).toEqual(
-      landingNavigation.map(({ label, hash }) => [label, `/#${hash}`])
-    )
-    for (const link of links) expect(link).toHaveAttribute("data-header-menu-close")
+    expect(
+      links.map((a) => [a.textContent?.trim(), a.getAttribute("href")])
+    ).toEqual(landingNavigation.map(({ label, hash }) => [label, `/#${hash}`]))
+    for (const link of links)
+      expect(link).toHaveAttribute("data-header-menu-close")
   })
 
   it("links sign up with the given href", async () => {

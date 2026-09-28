@@ -10,9 +10,10 @@ import { site } from "@/site"
 interface Props {
   repository: string | undefined
   signUpHref: string
+  ctaLabel?: string
 }
 
-const { repository, signUpHref } = Astro.props
+const { repository, signUpHref, ctaLabel = "Try it now" } = Astro.props
 ---
 
 <div class="contents" data-header-menu>
@@ -23,7 +24,11 @@ const { repository, signUpHref } = Astro.props
     aria-expanded="false"
     aria-controls="landing-menu"
     data-header-menu-open
-    {...buttonLink({ variant: "ghost", size: "icon", className: "size-11 lg:hidden" })}
+    {...buttonLink({
+      variant: "ghost",
+      size: "icon",
+      className: "size-11 lg:hidden"
+    })}
   >
     <Menu aria-hidden="true" />
   </button>
@@ -47,45 +52,45 @@ const { repository, signUpHref } = Astro.props
         </p>
       </div>
       <nav aria-label="Mobile navigation" class="flex flex-col gap-1 p-4">
-        {
-          landingNavigation.map(({ label, hash }) => (
-            <a
-              href={`/#${hash}`}
-              class="rounded-lg px-2 py-3 font-medium hover:bg-accent"
-              data-header-menu-close
-            >
-              {label}
-            </a>
-          ))
-        }
+        {landingNavigation.map(({ label, hash }) => (
+          <a
+            href={`/#${hash}`}
+            class="rounded-lg px-2 py-3 font-medium hover:bg-accent"
+            data-header-menu-close
+          >
+            {label}
+          </a>
+        ))}
       </nav>
-      {
-        repository && (
-          <div class="mx-6 flex flex-col gap-1 border-t py-4">
-            <a
-              href={repository}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="flex items-center gap-3 rounded-lg py-3 text-sm hover:text-primary"
-            >
-              <Code class="size-4" aria-hidden="true" /> Get the source
-            </a>
-          </div>
-        )
-      }
+      {repository && (
+        <div class="mx-6 flex flex-col gap-1 border-t py-4">
+          <a
+            href={repository}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center gap-3 rounded-lg py-3 text-sm hover:text-primary"
+          >
+            <Code class="size-4" aria-hidden="true" /> Get the source
+          </a>
+        </div>
+      )}
       <div class="px-6 pb-6">
         <a
           href={signUpHref}
           data-header-menu-close
           {...buttonLink({ className: "h-12 w-full rounded-full" })}
         >
-          Try it now
+          {ctaLabel}
         </a>
       </div>
       <form method="dialog">
         <button
           type="submit"
-          {...buttonLink({ variant: "ghost", size: "icon-sm", className: "absolute top-3 right-3" })}
+          {...buttonLink({
+            variant: "ghost",
+            size: "icon-sm",
+            className: "absolute top-3 right-3"
+          })}
         >
           <X aria-hidden="true" />
           <span class="sr-only">Close</span>
@@ -95,19 +100,60 @@ const { repository, signUpHref } = Astro.props
   </dialog>
 </div>
 
-
 <style>
-  .landing-menu { inset: 0 0 0 auto; width: 75%; max-width: none; height: 100%; max-height: none; margin: 0; padding: 0; overflow-y: auto; border-left: 1px solid var(--border); background: var(--popover); color: var(--popover-foreground); font-size: .875rem; box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1); }
-  .landing-menu::backdrop { background: rgb(0 0 0 / .1); backdrop-filter: blur(4px); }
-  :global(html:has(.landing-menu[open])) { overflow: hidden; }
-  @media (min-width: 40rem) { .landing-menu { max-width: 24rem; } }
+  .landing-menu {
+    inset: 0 0 0 auto;
+    width: 75%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    border-left: 1px solid var(--border);
+    background: var(--popover);
+    color: var(--popover-foreground);
+    font-size: 0.875rem;
+    box-shadow:
+      0 10px 15px -3px rgb(0 0 0 / 0.1),
+      0 4px 6px -4px rgb(0 0 0 / 0.1);
+  }
+  .landing-menu::backdrop {
+    background: rgb(0 0 0 / 0.1);
+    backdrop-filter: blur(4px);
+  }
+  :global(html:has(.landing-menu[open])) {
+    overflow: hidden;
+  }
+  @media (min-width: 40rem) {
+    .landing-menu {
+      max-width: 24rem;
+    }
+  }
   @media (prefers-reduced-motion: no-preference) {
-    .landing-menu, .landing-menu::backdrop { transition: opacity 200ms ease-in-out, translate 200ms ease-in-out, overlay 200ms allow-discrete, display 200ms allow-discrete; }
-    .landing-menu:not([open]) { opacity: 0; translate: 2.5rem 0; }
-    .landing-menu:not([open])::backdrop { opacity: 0; }
+    .landing-menu,
+    .landing-menu::backdrop {
+      transition:
+        opacity 200ms ease-in-out,
+        translate 200ms ease-in-out,
+        overlay 200ms allow-discrete,
+        display 200ms allow-discrete;
+    }
+    .landing-menu:not([open]) {
+      opacity: 0;
+      translate: 2.5rem 0;
+    }
+    .landing-menu:not([open])::backdrop {
+      opacity: 0;
+    }
     @starting-style {
-      .landing-menu[open] { opacity: 0; translate: 2.5rem 0; }
-      .landing-menu[open]::backdrop { opacity: 0; }
+      .landing-menu[open] {
+        opacity: 0;
+        translate: 2.5rem 0;
+      }
+      .landing-menu[open]::backdrop {
+        opacity: 0;
+      }
     }
   }
 </style>
@@ -115,7 +161,9 @@ const { repository, signUpHref } = Astro.props
 <script>
   import { startHeaderMenu } from "@/scripts/header-menu"
 
-  for (const root of document.querySelectorAll<HTMLElement>("[data-header-menu]")) {
+  for (const root of document.querySelectorAll<HTMLElement>(
+    "[data-header-menu]"
+  )) {
     startHeaderMenu(root)
   }
 </script>

@@ -22,9 +22,8 @@ import MobileAppPreview from "./mobile-app-preview.astro"
       end to end.
     </h2>
     <p class="max-w-sm text-muted-foreground leading-relaxed">
-      The kit ships with a product catalog so you can see every layer
-      working together. Study it, build on it, or delete it once your own
-      feature is in.
+      The kit ships with a product catalog so you can see every layer working
+      together. Study it, build on it, or delete it once your own feature is in.
     </p>
   </div>
   <div class="landing-feature-grid">
@@ -33,9 +32,7 @@ import MobileAppPreview from "./mobile-app-preview.astro"
         <Server class="size-6" aria-hidden="true" />
         <span class="text-xs">Included example</span>
       </div>
-      <h3
-        class="mt-5 max-w-sm font-medium text-3xl leading-tight tracking-tight sm:text-4xl"
-      >
+      <h3 class="mt-5 max-w-sm font-medium text-3xl leading-tight tracking-tight sm:text-4xl">
         From the database
         <br />
         to every screen.
@@ -65,8 +62,7 @@ import MobileAppPreview from "./mobile-app-preview.astro"
         href="/#workspace"
         class="mt-5 inline-flex items-center gap-3 text-sm underline underline-offset-4"
       >
-        Try the example{" "}
-        <ArrowUpRight class="size-4" aria-hidden="true" />
+        Try the example <ArrowUpRight class="size-4" aria-hidden="true" />
       </a>
     </article>
     <article
@@ -86,9 +82,9 @@ import MobileAppPreview from "./mobile-app-preview.astro"
           the first commit.
         </h3>
         <p class="mt-4 text-muted-foreground text-sm leading-relaxed">
-          The mobile app generates its client from the same API spec and
-          matches the web’s tokens, with native navigation and a cache that
-          survives restarts.
+          The mobile app generates its client from the same API spec and matches
+          the web’s tokens, with native navigation and a cache that survives
+          restarts.
         </p>
       </div>
       <div class="landing-device-composition">
@@ -101,30 +97,100 @@ import MobileAppPreview from "./mobile-app-preview.astro"
 </section>
 
 <style>
-  .landing-feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .landing-feature-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
   .landing-feature-focus,
-  .landing-feature-device { position: relative; overflow: hidden; border-radius: var(--radius-xl); padding: 2rem; }
-  .landing-feature-focus { background: var(--foreground); color: var(--background); }
-  .landing-feature-device { background: var(--accent); }
-  .landing-status-flow { margin-top: 1.5rem; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }
-  .landing-status-flow > :global(svg) { display: none; }
-  .landing-status-flow span { display: flex; align-items: center; justify-content: center; gap: .5rem; border: 1px solid currentColor; border-radius: var(--radius-md); padding: .5rem .25rem; font-size: .75rem; }
-  .landing-status-flow span:nth-of-type(2) { border-color: var(--primary); background: var(--primary); color: var(--primary-foreground); }
-  .landing-device-composition { position: relative; margin-top: 1.5rem; padding: .5rem; }
-  .landing-device-phone { width: min(12rem, 100%); margin-inline: auto; transform: rotate(2deg); }
+  .landing-feature-device {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-xl);
+    padding: 2rem;
+  }
+  .landing-feature-focus {
+    background: var(--foreground);
+    color: var(--background);
+  }
+  .landing-feature-device {
+    background: var(--accent);
+  }
+  .landing-status-flow {
+    margin-top: 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+  .landing-status-flow > :global(svg) {
+    display: none;
+  }
+  .landing-status-flow span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1px solid currentColor;
+    border-radius: var(--radius-md);
+    padding: 0.5rem 0.25rem;
+    font-size: 0.75rem;
+  }
+  .landing-status-flow span:nth-of-type(2) {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: var(--primary-foreground);
+  }
+  .landing-device-composition {
+    position: relative;
+    margin-top: 1.5rem;
+    padding: 0.5rem;
+  }
+  .landing-device-phone {
+    width: min(12rem, 100%);
+    margin-inline: auto;
+    transform: rotate(2deg);
+  }
   @media (max-width: 1023px) {
-    .landing-feature-focus, .landing-feature-device { padding: 2rem; }
+    .landing-feature-focus,
+    .landing-feature-device {
+      padding: 2rem;
+    }
   }
   @media (min-width: 1200px) {
-    .landing-feature-device { display: grid; grid-template-columns: minmax(0, 1fr) 12rem; align-items: center; gap: 1.5rem; }
-    .landing-device-composition { margin-top: 0; padding: 0; }
+    .landing-feature-device {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 12rem;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    .landing-device-composition {
+      margin-top: 0;
+      padding: 0;
+    }
   }
   @media (max-width: 639px) {
-    .landing-feature-grid { grid-template-columns: 1fr; }
-    .landing-feature-focus, .landing-feature-device { padding: 1.75rem; }
-    .landing-device-phone { margin-inline: auto; }
-    .landing-status-flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }
-    .landing-status-flow :global(svg) { display: none; }
-    .landing-status-flow span { justify-content: center; padding: .5rem .25rem; font-size: .6875rem; }
+    .landing-feature-grid {
+      grid-template-columns: 1fr;
+    }
+    .landing-feature-focus,
+    .landing-feature-device {
+      padding: 1.75rem;
+    }
+    .landing-device-phone {
+      margin-inline: auto;
+    }
+    .landing-status-flow {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.5rem;
+    }
+    .landing-status-flow :global(svg) {
+      display: none;
+    }
+    .landing-status-flow span {
+      justify-content: center;
+      padding: 0.5rem 0.25rem;
+      font-size: 0.6875rem;
+    }
   }
 </style>

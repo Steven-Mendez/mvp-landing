@@ -32,7 +32,7 @@ export function toCatalogProducts<Image, Product extends SourceProduct<Image>>(
           sku,
           price,
           alt,
-          image: await optimize(image, width),
+          image: await optimize(image, width)
         }) as CatalogProductOf<Product>
     )
   )

@@ -6,7 +6,10 @@ import { defineConfig, envField, fontProviders } from "astro/config"
 // `.env` is optional; `site` is read here, before Astro loads it.
 try {
   process.loadEnvFile()
-} catch {}
+} catch (error) {
+  if (/** @type {NodeJS.ErrnoException} */ (error).code !== "ENOENT")
+    throw error
+}
 
 export default defineConfig({
   // Absolute URLs (og:image, twitter:image) are built from the deployed origin.
@@ -22,8 +25,8 @@ export default defineConfig({
       weights: ["100 900"],
       styles: ["normal"],
       subsets: ["latin"],
-      fallbacks: ["sans-serif"],
-    },
+      fallbacks: ["sans-serif"]
+    }
   ],
   // Public values, baked into the HTML at build time and validated here.
   env: {
@@ -33,7 +36,7 @@ export default defineConfig({
         context: "client",
         access: "public",
         url: true,
-        default: "http://localhost:3000",
+        optional: true
       }),
       // Optional public link to the kit's source ("Get the source").
       PUBLIC_REPOSITORY_URL: envField.string({
@@ -41,11 +44,11 @@ export default defineConfig({
         access: "public",
         optional: true,
         url: true,
-        startsWith: "https://",
-      }),
-    },
+        startsWith: "https://"
+      })
+    }
   },
   vite: {
-    plugins: [tailwindcss()],
-  },
+    plugins: [tailwindcss()]
+  }
 })

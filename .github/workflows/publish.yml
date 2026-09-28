@@ -1,0 +1,83 @@
+name: Publish artifact
+
+on:
+  workflow_call:
+    inputs:
+      run_id:
+        type: string
+        required: true
+      sha:
+        type: string
+        required: true
+      region:
+        type: string
+        required: true
+      bucket:
+        type: string
+        required: true
+      distribution_id:
+        type: string
+        required: true
+      site_url:
+        type: string
+        required: true
+      app_url:
+        type: string
+        required: true
+
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: ${{ inputs.site_url }}
+    env:
+      PUBLIC_SITE_URL: ${{ inputs.site_url }}
+      PUBLIC_APP_URL: ${{ inputs.app_url }}
+      SITE_URL: ${{ inputs.site_url }}
+      APP_URL: ${{ inputs.app_url }}
+      RELEASE_SHA: ${{ inputs.sha }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          name: landing-${{ inputs.sha }}
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+          path: dist
+      - run: node scripts/release.mjs verify
+      # No dependency installation or build runs with the deploy credentials.
+      - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ inputs.region }}
+      - run: bash scripts/publish.sh
+        env:
+          BUCKET: ${{ inputs.bucket }}
+          DISTRIBUTION_ID: ${{ inputs.distribution_id }}
+      - run: node scripts/smoke.mjs
+      - name: Deployment summary
+        if: always()
+        env:
+          RESULT: ${{ job.status }}
+          SOURCE_RUN: ${{ inputs.run_id }}
+        run: |
+          {
+            echo "### Production: $RESULT"
+            echo "- Commit: $RELEASE_SHA"
+            echo "- Site: $SITE_URL"
+            echo "- Artifact run: $SOURCE_RUN"
+            echo "- Recovery: run Rollback on main with a previous successful CD run ID."
+          } >> "$GITHUB_STEP_SUMMARY"

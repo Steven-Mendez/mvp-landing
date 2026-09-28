@@ -14,6 +14,7 @@ jobs:
     # The PR's author, not the actor: a person re-running the job is not Dependabot.
     if: github.event.pull_request.user.login == 'dependabot[bot]'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
         id: meta

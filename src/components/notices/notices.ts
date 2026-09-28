@@ -12,6 +12,6 @@ export const notices: Record<
   "account-deleted": { variant: "success", message: "Account deleted" },
   "sign-out-failed": {
     variant: "error",
-    message: "Could not sign out. Check your connection and try again.",
-  },
+    message: "Could not sign out. Check your connection and try again."
+  }
 }

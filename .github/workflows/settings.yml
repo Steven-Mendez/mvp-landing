@@ -1,0 +1,48 @@
+name: Production settings
+
+on:
+  workflow_call:
+    outputs:
+      region:
+        value: ${{ jobs.settings.outputs.region }}
+      bucket:
+        value: ${{ jobs.settings.outputs.bucket }}
+      distribution_id:
+        value: ${{ jobs.settings.outputs.distribution_id }}
+      site_url:
+        value: ${{ jobs.settings.outputs.site_url }}
+      app_url:
+        value: ${{ jobs.settings.outputs.app_url }}
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  settings:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      region: ${{ steps.settings.outputs.region }}
+      bucket: ${{ steps.stack.outputs.bucket }}
+      distribution_id: ${{ steps.stack.outputs.distribution_id }}
+      site_url: ${{ steps.stack.outputs.site_url }}
+      app_url: ${{ steps.stack.outputs.app_url }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+      - id: settings
+        run: node scripts/read-stack.mjs settings
+      - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ vars.AWS_CONFIG_ROLE_ARN }}
+          aws-region: ${{ steps.settings.outputs.region }}
+      - id: stack
+        run: node scripts/read-stack.mjs stack
+        env:
+          LANDING_MODE: ${{ vars.LANDING_MODE || 'standalone' }}

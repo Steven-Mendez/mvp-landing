@@ -1,7 +1,6 @@
-# The landing stack: the static Astro build (dist/) in a private S3 bucket behind
-# CloudFront, on top of the core stack (mvp-api), whose outputs it reads from SSM
-# (ssm.tf). Pay-per-use only; the one optional fixed cost, the hosted zone, belongs to the
-# core stack.
+# The standalone landing stack: static Astro on private S3 + CloudFront. Optional
+# custom DNS reads the core stack's zone from SSM (ssm.tf). Pay-per-use only;
+# the optional hosted zone belongs to the core stack.
 #
 # Terraform creates the infrastructure; the CD workflow only uploads dist/ and
 # invalidates the cache, with the narrow role from github_oidc.tf.

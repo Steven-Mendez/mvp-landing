@@ -1,0 +1,64 @@
+name: Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Successful CD run ID whose retained artifact should be restored
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  source:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+    outputs:
+      sha: ${{ steps.source.outputs.sha }}
+    steps:
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        id: source
+        env:
+          RUN_ID: ${{ inputs.run_id }}
+        with:
+          script: |
+            if (!/^\d+$/.test(process.env.RUN_ID)) throw new Error("run_id must be numeric")
+            const { data: run } = await github.rest.actions.getWorkflowRun({
+              ...context.repo, run_id: Number(process.env.RUN_ID)
+            })
+            if (run.path !== ".github/workflows/cd.yml" || run.head_branch !== "main" ||
+                run.conclusion !== "success" || run.head_repository.id !== context.payload.repository.id ||
+                !["push", "workflow_dispatch"].includes(run.event)) {
+              throw new Error("Rollback requires a successful CD run from this repository's main branch")
+            }
+            core.setOutput("sha", run.head_sha)
+  settings:
+    needs: source
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/settings.yml
+  publish:
+    needs: [source, settings]
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    uses: ./.github/workflows/publish.yml
+    with:
+      run_id: ${{ inputs.run_id }}
+      sha: ${{ needs.source.outputs.sha }}
+      region: ${{ needs.settings.outputs.region }}
+      bucket: ${{ needs.settings.outputs.bucket }}
+      distribution_id: ${{ needs.settings.outputs.distribution_id }}
+      site_url: ${{ needs.settings.outputs.site_url }}
+      app_url: ${{ needs.settings.outputs.app_url }}

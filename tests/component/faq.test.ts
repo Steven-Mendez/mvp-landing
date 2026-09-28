@@ -24,18 +24,28 @@ describe("faq", () => {
     const doc = await render()
     const items = [...doc.querySelectorAll("details")]
 
-    expect(items.map((d) => d.querySelector("summary h3")?.textContent)).toEqual([
+    expect(
+      items.map((d) => d.querySelector("summary h3")?.textContent)
+    ).toEqual([
       `What is ${site.name}?`,
       "Is the product catalog part of my product?",
       "Do I have to ship the mobile app?",
       "What does it cost?",
-      "Can I try it before I use it?",
+      "Can I try it before I use it?"
     ])
     for (const item of items) {
       expect(item).not.toHaveAttribute("open")
-      expect(item.querySelector("summary")).toHaveAttribute("data-variant", "ghost")
-      expect(item.querySelector(".landing-faq-icon")).toHaveAttribute("aria-hidden", "true")
-      expect(item.querySelector("p.landing-faq-answer")?.textContent?.trim()).not.toBe("")
+      expect(item.querySelector("summary")).toHaveAttribute(
+        "data-variant",
+        "ghost"
+      )
+      expect(item.querySelector(".landing-faq-icon")).toHaveAttribute(
+        "aria-hidden",
+        "true"
+      )
+      expect(
+        item.querySelector("p.landing-faq-answer")?.textContent?.trim()
+      ).not.toBe("")
     }
   })
 

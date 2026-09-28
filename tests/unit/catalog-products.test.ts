@@ -9,7 +9,7 @@ const source = [
     alt: "Desk lamp",
     image: { src: "desk.webp" },
     category: "Workspace",
-    description: "Extra",
+    description: "Extra"
   },
   {
     name: "Everyday tote",
@@ -18,12 +18,13 @@ const source = [
     alt: "Tote bag",
     image: { src: "tote.webp" },
     category: "Everyday",
-    description: "Extra",
-  },
+    description: "Extra"
+  }
 ]
 
-const fakeOptimize = vi.fn(async (image: { src: string }, width: number) =>
-  `/_astro/${image.src}?w=${width}`
+const fakeOptimize = vi.fn(
+  async (image: { src: string }, width: number) =>
+    `/_astro/${image.src}?w=${width}`
 )
 
 describe("toCatalogProducts", () => {
@@ -40,19 +41,23 @@ describe("toCatalogProducts", () => {
         sku: "DSK-001",
         price: "186",
         alt: "Desk lamp",
-        image: "/_astro/desk.webp?w=640",
+        image: "/_astro/desk.webp?w=640"
       },
       {
         name: "Everyday tote",
         sku: "TOT-001",
         price: "64",
         alt: "Tote bag",
-        image: "/_astro/tote.webp?w=640",
-      },
+        image: "/_astro/tote.webp?w=640"
+      }
     ])
-    expect(Object.keys(products[0] ?? {}).sort()).toEqual(
-      ["alt", "image", "name", "price", "sku"]
-    )
+    expect(Object.keys(products[0] ?? {}).sort()).toEqual([
+      "alt",
+      "image",
+      "name",
+      "price",
+      "sku"
+    ])
     expect(fakeOptimize).toHaveBeenCalledTimes(2)
     expect(fakeOptimize).toHaveBeenNthCalledWith(1, source[0]?.image, 640)
     expect(fakeOptimize).toHaveBeenNthCalledWith(2, source[1]?.image, 640)
@@ -62,7 +67,7 @@ describe("toCatalogProducts", () => {
     const products = await toCatalogProducts(source, fakeOptimize, 320)
     expect(products.map(({ image }) => image)).toEqual([
       "/_astro/desk.webp?w=320",
-      "/_astro/tote.webp?w=320",
+      "/_astro/tote.webp?w=320"
     ])
   })
 
@@ -75,7 +80,7 @@ describe("toCatalogProducts", () => {
     const products = await toCatalogProducts(source, optimize)
     expect(products.map(({ sku, image }) => [sku, image])).toEqual([
       ["DSK-001", "desk.webp"],
-      ["TOT-001", "tote.webp"],
+      ["TOT-001", "tote.webp"]
     ])
   })
 

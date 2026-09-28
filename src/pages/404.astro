@@ -6,11 +6,7 @@ import { site } from "@/site"
 // Static hosts serve this file for unknown paths with a real 404 status.
 ---
 
-<RootLayout
-  title={site.name}
-  canonical={false}
-  description={site.description}
->
+<RootLayout title={site.name} canonical={false} description={site.description}>
   <main class="flex min-h-svh items-center justify-center p-4 md:p-6">
     <NotFound />
   </main>

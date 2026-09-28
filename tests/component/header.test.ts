@@ -25,21 +25,24 @@ describe("header", () => {
     const nav = doc.querySelector('nav[aria-label="Main navigation"]')
     const links = [...(nav?.querySelectorAll("a") ?? [])]
 
-    expect(links.map((a) => [a.textContent?.trim(), a.getAttribute("href")])).toEqual(
-      landingNavigation.map(({ label, hash }) => [label, `/#${hash}`])
-    )
+    expect(
+      links.map((a) => [a.textContent?.trim(), a.getAttribute("href")])
+    ).toEqual(landingNavigation.map(({ label, hash }) => [label, `/#${hash}`]))
   })
 
   it("links sign in and sign up to the web app", async () => {
     const doc = await render()
     const signIn = doc.querySelector("a.landing-sign-in")
-    const signUp = [...doc.querySelectorAll("header > .landing-header-actions > a")].find(
-      (a) => a.textContent?.includes("Try it now")
-    )
+    const signUp = [
+      ...doc.querySelectorAll("header > .landing-header-actions > a")
+    ].find((a) => a.textContent?.includes("Try it now"))
 
     expect(signIn).toHaveAttribute("href", "http://localhost:3000/login")
     expect(signIn?.textContent?.trim()).toBe("Sign in")
-    expect(signUp).toHaveAttribute("href", "http://localhost:3000/login?mode=sign-up")
+    expect(signUp).toHaveAttribute(
+      "href",
+      "http://localhost:3000/login?mode=sign-up"
+    )
     expect(signUp).toHaveAttribute("data-variant", "default")
   })
 
@@ -52,7 +55,10 @@ describe("header", () => {
     const menuSignUp = [...(menu?.querySelectorAll("a") ?? [])].find((a) =>
       a.textContent?.includes("Try it now")
     )
-    expect(menuSignUp).toHaveAttribute("href", "http://localhost:3000/login?mode=sign-up")
+    expect(menuSignUp).toHaveAttribute(
+      "href",
+      "http://localhost:3000/login?mode=sign-up"
+    )
     expect(doc.body.textContent).not.toContain("Get the source")
   })
 })

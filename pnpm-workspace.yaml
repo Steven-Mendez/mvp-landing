@@ -1,5 +1,15 @@
 saveExact: true
+overrides:
+  # Upstream tools still pin vulnerable transitive versions. Keep the audited CLI in
+  # the lockfile; remove these when LHCI/Stryker adopt the patched dependencies.
+  "typed-rest-client>qs": "6.16.0"
+  "@lhci/cli>tmp": "0.2.7"
+  "external-editor>tmp": "0.2.7"
+  "@lhci/cli>uuid": "11.1.1"
+  "@lhci/cli>lighthouse": "13.5.0"
+  "@lhci/utils>lighthouse": "13.5.0"
+  "@lhci/cli>proxy-agent": "8.0.2"
 allowBuilds:
   esbuild: true
 patchedDependencies:
-  '@stryker-mutator/vitest-runner@10.0.0': patches/@stryker-mutator__vitest-runner@10.0.0.patch
+  "@stryker-mutator/vitest-runner@10.0.0": patches/@stryker-mutator__vitest-runner@10.0.0.patch

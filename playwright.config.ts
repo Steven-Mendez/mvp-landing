@@ -13,16 +13,17 @@ export default defineConfig({
   reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
   use: {
     baseURL,
-    trace: "on-first-retry",
+    trace: "on-first-retry"
   },
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
     { name: "mobile", use: { ...devices["Pixel 7"] } },
+    { name: "webkit", use: { ...devices["Desktop Safari"] } }
   ],
   webServer: {
     command: `pnpm preview --port ${port}`,
     url: baseURL,
     timeout: 120_000,
-    reuseExistingServer: !process.env.CI,
-  },
+    reuseExistingServer: !process.env.CI
+  }
 })

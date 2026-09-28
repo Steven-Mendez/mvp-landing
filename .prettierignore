@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.astro/
+.shadcn-backup/
+.lighthouseci/
+.stryker-tmp/
+coverage/
+reports/
+test-results/
+playwright-report/
+pnpm-lock.yaml
+patches/
+infra/.terraform/
+infra/backend.tf
+src/components/ui/

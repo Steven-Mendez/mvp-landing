@@ -1,0 +1,68 @@
+name: Production health
+
+on:
+  schedule:
+    - cron: "17,47 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-health
+  cancel-in-progress: false
+
+jobs:
+  settings:
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/settings.yml
+  smoke:
+    needs: settings
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+      - run: node scripts/smoke.mjs
+        env:
+          SITE_URL: ${{ needs.settings.outputs.site_url }}
+          APP_URL: ${{ needs.settings.outputs.app_url }}
+  incident:
+    needs: [settings, smoke]
+    if: always() && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          HEALTHY: ${{ needs.settings.result == 'success' && needs.smoke.result == 'success' }}
+          ASSIGNEE: ${{ vars.OPERATIONS_OWNER }}
+        with:
+          script: |
+            const marker = "<!-- production-health -->"
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              ...context.repo, state: "open", creator: "github-actions[bot]", per_page: 100
+            })
+            const incident = issues.find(issue => issue.body?.startsWith(marker))
+            const url = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            if (process.env.HEALTHY === "true") {
+              if (incident) {
+                await github.rest.issues.createComment({ ...context.repo, issue_number: incident.number, body: `Recovered: ${url}` })
+                await github.rest.issues.update({ ...context.repo, issue_number: incident.number, state: "closed" })
+              }
+            } else if (!incident) {
+              await github.rest.issues.create({
+                ...context.repo,
+                title: "Production health check failed",
+                body: `${marker}\nProduction or its configuration failed verification. Investigate ${url}.\n\nCheck SSM, the CTA targets and the latest deployment. Recovery instructions: infra/README.md.`,
+                assignees: process.env.ASSIGNEE ? [process.env.ASSIGNEE] : []
+              })
+            }

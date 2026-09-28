@@ -24,13 +24,40 @@ import CallToAction from "./call-to-action.astro"
 </section>
 
 <style>
-  .landing-closing { background: var(--primary); color: var(--primary-foreground); }
-  .landing-closing-inner { width: min(100% - 3rem, 76rem); margin-inline: auto; display: flex; align-items: center; justify-content: space-between; gap: 3rem; padding-block: 3rem; }
-  .landing-closing h2 { font-size: clamp(3rem, 6vw, 5.5rem); line-height: 1; letter-spacing: -.055em; font-weight: 500; }
-  .landing-closing-inner > div:last-child { max-width: 30rem; }
-  .landing-closing :global(.landing-action-buttons) { justify-content: flex-start; }
+  .landing-closing {
+    background: var(--primary);
+    color: var(--primary-foreground);
+  }
+  .landing-closing-inner {
+    width: min(100% - 3rem, 76rem);
+    margin-inline: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 3rem;
+    padding-block: 3rem;
+  }
+  .landing-closing h2 {
+    font-size: clamp(3rem, 6vw, 5.5rem);
+    line-height: 1;
+    letter-spacing: -0.055em;
+    font-weight: 500;
+  }
+  .landing-closing-inner > div:last-child {
+    max-width: 30rem;
+  }
+  .landing-closing :global(.landing-action-buttons) {
+    justify-content: flex-start;
+  }
   @media (max-width: 639px) {
-    .landing-closing-inner { flex-direction: column; align-items: start; gap: 2rem; padding-block: 3.5rem; }
-    .landing-closing :global(.landing-action-buttons) { margin-inline: 0; }
+    .landing-closing-inner {
+      flex-direction: column;
+      align-items: start;
+      gap: 2rem;
+      padding-block: 3.5rem;
+    }
+    .landing-closing :global(.landing-action-buttons) {
+      margin-inline: 0;
+    }
   }
 </style>

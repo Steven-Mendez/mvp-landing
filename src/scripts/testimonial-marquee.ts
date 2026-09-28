@@ -6,10 +6,21 @@
 export function startTestimonialMarquee(section: HTMLElement): () => void {
   const track = section.querySelector<HTMLElement>(".landing-testimonial-track")
   if (!track || !("IntersectionObserver" in window)) return () => {}
+  const toggle = section.querySelector<HTMLButtonElement>(
+    "[data-marquee-pause]"
+  )
+  let paused = false
   let inView = false
   const update = () => {
-    track.dataset.running = String(inView && !document.hidden)
+    track.dataset.running = String(inView && !document.hidden && !paused)
   }
+  const onToggle = () => {
+    paused = !paused
+    toggle?.setAttribute("aria-pressed", String(paused))
+    update()
+  }
+  if (toggle) toggle.hidden = false
+  toggle?.addEventListener("click", onToggle)
   const observer = new IntersectionObserver(([entry]) => {
     inView = entry?.isIntersecting ?? false
     update()
@@ -19,5 +30,6 @@ export function startTestimonialMarquee(section: HTMLElement): () => void {
   return () => {
     observer.disconnect()
     document.removeEventListener("visibilitychange", update)
+    toggle?.removeEventListener("click", onToggle)
   }
 }

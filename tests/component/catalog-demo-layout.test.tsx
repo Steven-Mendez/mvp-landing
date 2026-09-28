@@ -6,7 +6,13 @@ import { CatalogDemo } from "@/components/landing/catalog-demo"
 import { type CatalogProduct, demoProducts } from "@/data/demo-products"
 
 const products: CatalogProduct[] = demoProducts.map(
-  ({ name, sku, price, alt, image }) => ({ name, sku, price, alt, image: image.src })
+  ({ name, sku, price, alt, image }) => ({
+    name,
+    sku,
+    price,
+    alt,
+    image: image.src
+  })
 )
 
 const catalog = () => screen.getByRole("list", { name: "Sample catalog" })
@@ -22,7 +28,10 @@ describe("<CatalogDemo> layouts", () => {
     for (const [index, item] of items().entries()) {
       expect(item).toHaveAttribute("class", "landing-gallery-product")
       const img = within(item).getByRole("img")
-      expect(img).toHaveAttribute("class", "rounded-lg object-cover mb-4 aspect-square w-full")
+      expect(img).toHaveAttribute(
+        "class",
+        "rounded-lg object-cover mb-4 aspect-square w-full"
+      )
       expect(img).toHaveAttribute("alt", products[index].alt)
       expect(img).toHaveAttribute("src", products[index].image)
       expect(img).toHaveAttribute("width", "800")
@@ -74,8 +83,12 @@ describe("<CatalogDemo> layouts", () => {
   it("enables the controls once hydrated", () => {
     render(<CatalogDemo products={products} />)
 
-    expect(screen.getByRole("textbox", { name: "Search sample products" })).toBeEnabled()
-    expect(screen.getByRole("radiogroup", { name: "Preview layout" })).toBeInTheDocument()
+    expect(
+      screen.getByRole("textbox", { name: "Search sample products" })
+    ).toBeEnabled()
+    expect(
+      screen.getByRole("radiogroup", { name: "Preview layout" })
+    ).toBeInTheDocument()
     expect(screen.getByRole("radio", { name: "Gallery view" })).toBeEnabled()
     expect(screen.getByRole("radio", { name: "List view" })).toBeEnabled()
   })
@@ -84,21 +97,36 @@ describe("<CatalogDemo> layouts", () => {
     const container = document.createElement("div")
     container.innerHTML = renderToString(<CatalogDemo products={products} />)
 
-    const input = within(container).getByRole("textbox", { name: "Search sample products" })
+    const input = within(container).getByRole("textbox", {
+      name: "Search sample products"
+    })
     expect(input).toBeDisabled()
     expect(input).toHaveAttribute("placeholder", "Search name or SKU…")
-    expect(within(container).getByRole("radio", { name: "Gallery view" })).toBeDisabled()
-    expect(within(container).getByRole("radio", { name: "List view" })).toBeDisabled()
-    expect(within(container).getByRole("status")).toHaveTextContent("3 of 3 sample products")
+    expect(
+      within(container).getByRole("radio", { name: "Gallery view" })
+    ).toBeDisabled()
+    expect(
+      within(container).getByRole("radio", { name: "List view" })
+    ).toBeDisabled()
+    expect(within(container).getByRole("status")).toHaveTextContent(
+      "3 of 3 sample products"
+    )
   })
 
   it("explains the empty state", () => {
     render(<CatalogDemo products={products} />)
-    fireEvent.change(screen.getByRole("textbox", { name: "Search sample products" }), {
-      target: { value: "bicycle" },
-    })
+    fireEvent.change(
+      screen.getByRole("textbox", { name: "Search sample products" }),
+      {
+        target: { value: "bicycle" }
+      }
+    )
 
-    expect(screen.getByText("Try “tote”, “desk” or a product SKU.")).toBeInTheDocument()
-    expect(screen.getByRole("status")).toHaveTextContent("0 of 3 sample products")
+    expect(
+      screen.getByText("Try “tote”, “desk” or a product SKU.")
+    ).toBeInTheDocument()
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "0 of 3 sample products"
+    )
   })
 })

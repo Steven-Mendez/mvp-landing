@@ -8,12 +8,16 @@ describe("buttonLink", () => {
       "data-slot": "button",
       "data-variant": "default",
       "data-size": "default",
-      class: buttonVariants(),
+      class: buttonVariants()
     })
   })
 
   it("carries the variant, size and extra classes", () => {
-    const link = buttonLink({ variant: "ghost", size: "icon", className: "size-11" })
+    const link = buttonLink({
+      variant: "ghost",
+      size: "icon",
+      className: "size-11"
+    })
     expect(link["data-variant"]).toBe("ghost")
     expect(link["data-size"]).toBe("icon")
     expect(link.class).toContain("size-11")

@@ -3,7 +3,7 @@ import { PUBLIC_REPOSITORY_URL } from "astro:env/client"
 import ArrowUpRight from "@lucide/astro/icons/arrow-up-right"
 import BrandLogo from "@/components/brand-logo.astro"
 import { landingNavigation } from "@/data/navigation"
-import { signInHref, signUpHref } from "@/lib/app-url"
+import { appEnabled, signInHref, primaryCta } from "@/lib/app-url"
 import { buttonLink } from "@/lib/button-classes"
 import { site } from "@/site"
 import HeaderMenu from "./header-menu.astro"
@@ -12,32 +12,35 @@ const repository = PUBLIC_REPOSITORY_URL
 ---
 
 <header class="landing-header">
-  <a
-    href="/"
-    aria-label={`${site.name} home`}
-    class="landing-brand"
-  >
+  <a href="/" aria-label={`${site.name} home`} class="landing-brand">
     <BrandLogo decorative priority />
     {site.name}
   </a>
   <nav aria-label="Main navigation" class="landing-desktop-nav">
-    {
-      landingNavigation.map(({ label, hash }) => (
-        <a href={`/#${hash}`}>
-          {label}
-        </a>
-      ))
-    }
+    {landingNavigation.map(({ label, hash }) => (
+      <a href={`/#${hash}`}>{label}</a>
+    ))}
   </nav>
   <div class="landing-header-actions">
-    <a href={signInHref()} class="landing-sign-in">Sign in</a>
+    {appEnabled && (
+      <a href={signInHref()} class="landing-sign-in">
+        Sign in
+      </a>
+    )}
     <a
-      href={signUpHref()}
-      {...buttonLink({ className: "hidden h-10 rounded-full px-4 sm:inline-flex" })}
+      href={primaryCta.href}
+      {...buttonLink({
+        className: "hidden h-10 rounded-full px-4 sm:inline-flex"
+      })}
     >
-      Try it now <ArrowUpRight class="size-4" aria-hidden="true" />
+      {appEnabled ? "Try it now" : primaryCta.label}{" "}
+      <ArrowUpRight class="size-4" aria-hidden="true" />
     </a>
-    <HeaderMenu repository={repository} signUpHref={signUpHref()} />
+    <HeaderMenu
+      repository={repository}
+      signUpHref={primaryCta.href}
+      ctaLabel={appEnabled ? "Try it now" : primaryCta.label}
+    />
   </div>
 </header>
 
@@ -50,17 +53,49 @@ const repository = PUBLIC_REPOSITORY_URL
     gap: 1rem;
     border-bottom: 1px solid var(--border);
   }
-  .landing-desktop-nav { display: flex; align-items: center; gap: 1.75rem; color: var(--muted-foreground); font-size: .875rem; }
-  .landing-desktop-nav a { display: inline-flex; align-items: center; min-height: 2.75rem; }
-  .landing-desktop-nav a:hover, .landing-sign-in:hover { color: var(--primary); }
-  .landing-header-actions { display: flex; align-items: center; gap: 1.25rem; }
-  .landing-sign-in { display: inline-flex; align-items: center; min-height: 2.75rem; font-size: .875rem; white-space: nowrap; }
+  .landing-desktop-nav {
+    display: flex;
+    align-items: center;
+    gap: 1.75rem;
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+  }
+  .landing-desktop-nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+  .landing-desktop-nav a:hover,
+  .landing-sign-in:hover {
+    color: var(--primary);
+  }
+  .landing-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+  .landing-sign-in {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    font-size: 0.875rem;
+    white-space: nowrap;
+  }
   @media (max-width: 1023px) {
-    .landing-desktop-nav { display: none; }
+    .landing-desktop-nav {
+      display: none;
+    }
   }
   @media (max-width: 639px) {
-    .landing-header { min-height: 5rem; }
-    .landing-header-actions { gap: .5rem; }
-    .landing-header .landing-brand :global(img) { width: 2rem; height: 2rem; }
+    .landing-header {
+      min-height: 5rem;
+    }
+    .landing-header-actions {
+      gap: 0.5rem;
+    }
+    .landing-header .landing-brand :global(img) {
+      width: 2rem;
+      height: 2rem;
+    }
   }
 </style>

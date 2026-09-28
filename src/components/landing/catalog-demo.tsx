@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import {
   InputGroup,
   InputGroupAddon,
-  InputGroupInput,
+  InputGroupInput
 } from "@/components/ui/input-group"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import type { CatalogProduct } from "@/data/demo-products"

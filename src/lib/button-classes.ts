@@ -12,7 +12,7 @@ type Size = NonNullable<VariantProps<typeof buttonVariants>["size"]>
 export function buttonLink({
   variant = "default",
   size = "default",
-  className,
+  className
 }: {
   variant?: Variant
   size?: Size
@@ -22,7 +22,7 @@ export function buttonLink({
     "data-slot": "button",
     "data-variant": variant,
     "data-size": size,
-    class: cn(buttonVariants({ variant, size, className })),
+    class: cn(buttonVariants({ variant, size, className }))
   }
 }
 
@@ -34,6 +34,6 @@ export function marketingButtonLink(variant: Variant, className?: string) {
     className: cn(
       "h-12 gap-3 rounded-full px-6 motion-reduce:transition-none",
       className
-    ),
+    )
   })
 }

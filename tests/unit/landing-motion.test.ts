@@ -1,9 +1,16 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { startLandingMotion } from "@/scripts/landing-motion"
-import { FakeIntersectionObserver, fakeMatchMedia, fakeVisibility } from "./browser-fakes"
+import {
+  FakeIntersectionObserver,
+  fakeMatchMedia,
+  fakeVisibility
+} from "./browser-fakes"
 
-type Motion = { cancel: ReturnType<typeof vi.fn>; onfinish: (() => void) | null }
+type Motion = {
+  cancel: ReturnType<typeof vi.fn>
+  onfinish: (() => void) | null
+}
 
 let reducedMotion: ReturnType<typeof fakeMatchMedia>
 let visibility: ReturnType<typeof fakeVisibility>
@@ -36,7 +43,7 @@ beforeEach(() => {
   Object.defineProperty(Element.prototype, "animate", {
     configurable: true,
     writable: true,
-    value: animate,
+    value: animate
   })
   document.body.innerHTML = "<main></main>"
   container = document.querySelector("main") as HTMLElement
@@ -73,10 +80,19 @@ describe("startLandingMotion", () => {
     expect(below.dataset.revealPending).toBeUndefined()
     expect(observer.observed.has(below)).toBe(false)
     expect(animate).toHaveBeenCalledOnce()
-    const [keyframes, options] = animate.mock.calls[0] as [Keyframe[], KeyframeAnimationOptions]
+    const [keyframes, options] = animate.mock.calls[0] as [
+      Keyframe[],
+      KeyframeAnimationOptions
+    ]
     expect(keyframes[0]).toMatchObject({ opacity: 0 })
-    expect(String(keyframes[0]?.transform)).toContain("translate3d(-24px, 24px, 0)")
-    expect(options).toMatchObject({ duration: 900, delay: 120, fill: "backwards" })
+    expect(String(keyframes[0]?.transform)).toContain(
+      "translate3d(-24px, 24px, 0)"
+    )
+    expect(options).toMatchObject({
+      duration: 900,
+      delay: 120,
+      fill: "backwards"
+    })
   })
 
   it("shows everything at once with reduced motion", () => {
@@ -152,7 +168,10 @@ describe("startLandingMotion", () => {
 
 describe("startLandingMotion (precise behaviour)", () => {
   const stubTransform = (transform: string) =>
-    vi.stubGlobal("getComputedStyle", () => ({ transform }) as CSSStyleDeclaration)
+    vi.stubGlobal(
+      "getComputedStyle",
+      () => ({ transform }) as CSSStyleDeclaration
+    )
 
   it("asks for the reduced-motion preference and observes at a 0.16 threshold", () => {
     const matchMedia = vi.fn(window.matchMedia)
@@ -168,7 +187,7 @@ describe("startLandingMotion (precise behaviour)", () => {
     ["phone", "translate3d(24px, 40px, 0) rotate(3deg) scale(.97)"],
     ["left", "translate3d(-24px, 24px, 0)"],
     ["right", "translate3d(24px, 24px, 0)"],
-    ["unknown", "translate3d(0, 32px, 0)"],
+    ["unknown", "translate3d(0, 32px, 0)"]
   ])("animates %s in with its exact keyframes and options", (reveal, from) => {
     stubTransform("none")
     const below = revealable({ reveal })
@@ -177,9 +196,14 @@ describe("startLandingMotion (precise behaviour)", () => {
     expect(animate).toHaveBeenCalledWith(
       [
         { opacity: 0, transform: ` ${from}` },
-        { opacity: 1, transform: "none" },
+        { opacity: 1, transform: "none" }
       ],
-      { duration: 900, delay: 0, easing: "cubic-bezier(.23,1,.32,1)", fill: "backwards" }
+      {
+        duration: 900,
+        delay: 0,
+        easing: "cubic-bezier(.23,1,.32,1)",
+        fill: "backwards"
+      }
     )
   })
 
@@ -191,9 +215,14 @@ describe("startLandingMotion (precise behaviour)", () => {
     expect(animate.mock.calls[0]).toEqual([
       [
         { opacity: 0, transform: "rotate(2deg) translate3d(24px, 24px, 0)" },
-        { opacity: 1, transform: "rotate(2deg)" },
+        { opacity: 1, transform: "rotate(2deg)" }
       ],
-      { duration: 900, delay: 40, easing: "cubic-bezier(.23,1,.32,1)", fill: "backwards" },
+      {
+        duration: 900,
+        delay: 40,
+        easing: "cubic-bezier(.23,1,.32,1)",
+        fill: "backwards"
+      }
     ])
   })
 
@@ -327,7 +356,9 @@ describe("startLandingMotion (precise behaviour)", () => {
     const addPref = vi.spyOn(reducedMotion, "addEventListener")
     const removePref = vi.spyOn(reducedMotion, "removeEventListener")
     const stop = startLandingMotion(container)
-    const visibilityListener = add.mock.calls.find(([type]) => type === "visibilitychange")?.[1]
+    const visibilityListener = add.mock.calls.find(
+      ([type]) => type === "visibilitychange"
+    )?.[1]
     expect(visibilityListener).toBeTypeOf("function")
     expect(addPref).toHaveBeenCalledWith("change", visibilityListener)
 

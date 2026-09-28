@@ -2,9 +2,9 @@
 # The account's OIDC provider for token.actions.githubusercontent.com is created once, by
 # mvp-api's infra/bootstrap; this stack only looks it up.
 #
-# - deploy: the CD workflow (push to main, `production` environment). Reads landing/* and
-#   web/url from SSM, uploads dist/ to the bucket and invalidates the distribution;
-#   nothing else. The infrastructure itself is applied locally.
+# - deploy: publication in the `production` environment; writes the bucket and
+#   invalidates CloudFront. Infrastructure is applied locally.
+# - config: main-only jobs read public settings from SSM; no deployment permissions.
 # - plan: the Terraform workflow (pull requests that touch infra/). Read-only, plus this
 #   stack's state and its lock file.
 #
@@ -28,12 +28,17 @@ locals {
   github_oidc_provider_arn = var.offline_validation ? (
     "arn:aws:iam::000000000000:oidc-provider/token.actions.githubusercontent.com"
   ) : one(data.aws_iam_openid_connect_provider.github[*].arn)
+  account_id = var.offline_validation ? "000000000000" : data.aws_caller_identity.current[0].account_id
+}
+
+data "aws_caller_identity" "current" {
+  count = var.offline_validation ? 0 : 1
 }
 
 data "aws_iam_openid_connect_provider" "github" {
   count = local.github_roles && !var.offline_validation ? 1 : 0
 
-  url = "https://token.actions.githubusercontent.com"
+  arn = "arn:aws:iam::${local.account_id}:oidc-provider/token.actions.githubusercontent.com"
 }
 
 # Trust: exact OIDC subjects per role, no wildcards.
@@ -41,6 +46,7 @@ data "aws_iam_policy_document" "github_trust" {
   for_each = local.github_roles ? {
     deploy = [for prefix in local.github_subject_prefixes : "${prefix}:environment:${var.github_environment}"]
     plan   = [for prefix in local.github_subject_prefixes : "${prefix}:pull_request"]
+    config = [for prefix in local.github_subject_prefixes : "${prefix}:ref:refs/heads/main"]
   } : {}
 
   statement {
@@ -73,15 +79,6 @@ resource "aws_iam_role" "github_deploy" {
 }
 
 data "aws_iam_policy_document" "github_deploy" {
-  # Where to deploy (landing/*) and the web app's URL (web/url, written by mvp-web).
-  statement {
-    actions = ["ssm:GetParameter", "ssm:GetParameters"]
-    resources = [
-      "arn:aws:ssm:${var.region}:*:parameter${local.ssm_prefix}/landing/*",
-      "arn:aws:ssm:${var.region}:*:parameter${local.ssm_prefix}/web/url",
-    ]
-  }
-
   statement {
     actions   = ["s3:ListBucket"]
     resources = [aws_s3_bucket.landing.arn]
@@ -119,31 +116,99 @@ resource "aws_iam_role" "github_plan" {
   }
 }
 
-resource "aws_iam_role_policy_attachment" "github_plan_readonly" {
-  count = local.github_roles ? 1 : 0
-
-  role       = aws_iam_role.github_plan[0].name
-  policy_arn = "arn:aws:iam::aws:policy/ReadOnlyAccess"
-}
-
-# ReadOnlyAccess can read every object in the account, including the other stacks' state
-# (which holds secrets): the deny keeps object reads to this stack's own state. The lock
-# file is the only thing the plan writes; the state itself is never written by a plan.
+# Only this stack's resources and public core DNS parameters. The sole write permission
+# is its state lock. No account-wide managed policy, object reads or application data.
 data "aws_iam_policy_document" "github_plan" {
-  statement {
-    effect        = "Deny"
-    actions       = ["s3:GetObject", "s3:GetObjectVersion"]
-    not_resources = ["arn:aws:s3:::${var.tf_state_bucket}/${local.state_key}"]
-  }
-
   statement {
     actions   = ["s3:GetObject"]
     resources = ["arn:aws:s3:::${var.tf_state_bucket}/${local.state_key}"]
   }
 
   statement {
-    actions   = ["s3:PutObject", "s3:DeleteObject"]
+    sid       = "StateLock"
+    actions   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
     resources = ["arn:aws:s3:::${var.tf_state_bucket}/${local.state_key}.tflock"]
+  }
+
+  statement {
+    actions   = ["s3:ListBucket"]
+    resources = ["arn:aws:s3:::${var.tf_state_bucket}", aws_s3_bucket.landing.arn]
+  }
+
+  statement {
+    actions = [
+      "s3:GetBucket*", "s3:GetEncryptionConfiguration", "s3:GetLifecycleConfiguration",
+      "s3:GetAccelerateConfiguration", "s3:GetReplicationConfiguration",
+    ]
+    resources = [aws_s3_bucket.landing.arn]
+  }
+
+  statement {
+    actions = ["ssm:GetParameter", "ssm:GetParameters", "ssm:ListTagsForResource"]
+    resources = [
+      "arn:aws:ssm:${var.region}:${local.account_id}:parameter${local.ssm_prefix}/landing/*",
+      "arn:aws:ssm:${var.region}:${local.account_id}:parameter${local.ssm_prefix}/core/domain_name",
+      "arn:aws:ssm:${var.region}:${local.account_id}:parameter${local.ssm_prefix}/core/route53_zone_id",
+    ]
+  }
+
+  statement {
+    # DescribeParameters is metadata-only and does not support resource-level permissions.
+    actions   = ["ssm:DescribeParameters"]
+    resources = ["*"]
+  }
+
+  statement {
+    actions = ["iam:GetRole", "iam:GetRolePolicy", "iam:ListRolePolicies", "iam:ListAttachedRolePolicies", "iam:ListRoleTags"]
+    resources = [
+      "arn:aws:iam::${local.account_id}:role/${local.name}-landing-github-deploy",
+      "arn:aws:iam::${local.account_id}:role/${local.name}-landing-github-plan",
+      "arn:aws:iam::${local.account_id}:role/${local.name}-landing-github-config",
+    ]
+  }
+
+  statement {
+    actions   = ["iam:GetOpenIDConnectProvider"]
+    resources = [local.github_oidc_provider_arn]
+  }
+
+  statement {
+    actions   = ["cloudfront:GetDistribution", "cloudfront:GetDistributionConfig", "cloudfront:ListTagsForResource"]
+    resources = [aws_cloudfront_distribution.landing.arn]
+  }
+
+  statement {
+    actions   = ["cloudfront:GetFunction", "cloudfront:DescribeFunction", "cloudfront:ListTagsForResource"]
+    resources = [aws_cloudfront_function.viewer_request.arn]
+  }
+
+  statement {
+    actions   = ["cloudfront:GetOriginAccessControl"]
+    resources = ["arn:aws:cloudfront::${local.account_id}:origin-access-control/${aws_cloudfront_origin_access_control.landing.id}"]
+  }
+
+  dynamic "statement" {
+    for_each = var.enable_dns ? [1] : []
+    content {
+      actions   = ["ssm:GetParametersByPath"]
+      resources = ["arn:aws:ssm:${var.region}:${local.account_id}:parameter${local.ssm_prefix}/core"]
+    }
+  }
+
+  dynamic "statement" {
+    for_each = var.enable_dns ? [1] : []
+    content {
+      actions   = ["acm:DescribeCertificate", "acm:ListTagsForCertificate"]
+      resources = aws_acm_certificate.landing[*].arn
+    }
+  }
+
+  dynamic "statement" {
+    for_each = var.enable_dns ? [1] : []
+    content {
+      actions   = ["route53:GetHostedZone", "route53:ListResourceRecordSets"]
+      resources = ["arn:aws:route53:::hostedzone/${local.core.route53_zone_id}"]
+    }
   }
 }
 
@@ -152,4 +217,30 @@ resource "aws_iam_role_policy" "github_plan" {
 
   role   = aws_iam_role.github_plan[0].id
   policy = data.aws_iam_policy_document.github_plan.json
+}
+
+# Config jobs and monitoring run on main with read-only SSM credentials. The build job
+# receives only public outputs, never an AWS session or id-token permission.
+resource "aws_iam_role" "github_config" {
+  count = local.github_roles ? 1 : 0
+
+  name               = "${local.name}-landing-github-config"
+  assume_role_policy = data.aws_iam_policy_document.github_trust["config"].json
+}
+
+data "aws_iam_policy_document" "github_config" {
+  statement {
+    actions = ["ssm:GetParameter"]
+    resources = [
+      "arn:aws:ssm:${var.region}:${local.account_id}:parameter${local.ssm_prefix}/landing/*",
+      "arn:aws:ssm:${var.region}:${local.account_id}:parameter${local.ssm_prefix}/web/url",
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "github_config" {
+  count = local.github_roles ? 1 : 0
+
+  role   = aws_iam_role.github_config[0].id
+  policy = data.aws_iam_policy_document.github_config.json
 }

@@ -12,7 +12,7 @@ export const demoProducts = [
     price: "186",
     image: deskCollection,
     alt: "Blue desk lamp, ceramic pencil cup and a charcoal notebook",
-    sku: "DSK-001",
+    sku: "DSK-001"
   },
   {
     name: "Everyday tote",
@@ -21,7 +21,7 @@ export const demoProducts = [
     price: "64",
     image: everydayTote,
     alt: "Natural canvas tote bag with dark handles",
-    sku: "TOT-001",
+    sku: "TOT-001"
   },
   {
     name: "Studio headphones",
@@ -30,8 +30,8 @@ export const demoProducts = [
     price: "249",
     image: studioHeadphones,
     alt: "Over-ear studio headphones on a neutral surface",
-    sku: "AUD-001",
-  },
+    sku: "AUD-001"
+  }
 ] as const
 
 export type DemoProduct = (typeof demoProducts)[number]
