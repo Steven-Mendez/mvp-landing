@@ -15,6 +15,7 @@ import {
   verifyRelease,
   validateConfig
 } from "../../scripts/deployment.mjs"
+import { addCsp } from "../../scripts/csp.mjs"
 import { smoke } from "../../scripts/smoke.mjs"
 
 const config = {
@@ -30,6 +31,11 @@ test("production rejects missing, insecure or same-origin app configuration", ()
     config.site_url,
     "http://app.example.com",
     "https://localhost",
+    "https://127.0.0.1",
+    "https://0x7f000001",
+    "https://169.254.169.254",
+    "https://app.local",
+    "https://app.internal",
     "https://user:password@app.example.com",
     "https://app.example.com/login",
     "https://app.example.com?x=1"
@@ -76,7 +82,12 @@ test("release round-trip supports rollback and rejects corruption, wrong commit 
 })
 
 function server(overrides = {}) {
-  const home = `<link rel="canonical" href="${config.site_url}/"><a href="${config.app_url}/login">Sign in</a><a href="${config.app_url}/login?mode=sign-up">Try it live</a><script src="/_astro/site.js"></script>`
+  const home = addCsp(
+    `<!DOCTYPE html><html><head><link rel="canonical" href="${config.site_url}/"></head><body><a href="${config.app_url}/login">Sign in</a><a href="${config.app_url}/login?mode=sign-up">Try it live</a><script src="/_astro/site.js"></script></body></html>`
+  )
+  const notFound = addCsp(
+    "<!DOCTYPE html><html><head></head><body>Not found</body></html>"
+  )
   const pages = {
     [`${config.site_url}/`]: [200, home, "text/html"],
     [`${config.site_url}/release.json`]: [
@@ -94,7 +105,7 @@ function server(overrides = {}) {
     ...overrides
   }
   return async (url) => {
-    const [status, body, type] = pages[url] || [404, "Not found", "text/html"]
+    const [status, body, type] = pages[url] || [404, notFound, "text/html"]
     const response = new Response(body, {
       status,
       headers: { "content-type": type }
@@ -106,6 +117,34 @@ function server(overrides = {}) {
 
 test("smoke verifies the release, actual CTA responses, assets and the real 404 status", async () => {
   assert.equal(await smoke(config, sha, server()), sha)
+  await assert.rejects(
+    smoke(
+      config,
+      sha,
+      server({
+        [`${config.site_url}/`]: [
+          200,
+          '<link rel="canonical" href="https://example.com/">',
+          "text/html"
+        ]
+      })
+    ),
+    /Missing enforced CSP/
+  )
+  await assert.rejects(
+    smoke(
+      config,
+      sha,
+      server({
+        [`${config.site_url}/__deployment_check_missing_page__`]: [
+          404,
+          "<!DOCTYPE html><html><head></head><body>Not found</body></html>",
+          "text/html"
+        ]
+      })
+    ),
+    /Missing enforced CSP/
+  )
   await assert.rejects(
     smoke(
       config,
@@ -143,7 +182,9 @@ test("smoke verifies the release, actual CTA responses, assets and the real 404 
 
 test("a standalone release is healthy without any API or web requests", async () => {
   const standalone = { ...config, app_url: "" }
-  const html = `<link rel="canonical" href="${config.site_url}/"><a href="/#workspace">Explore the demo</a><script src="/_astro/site.js"></script>`
+  const html = addCsp(
+    `<!DOCTYPE html><html><head><link rel="canonical" href="${config.site_url}/"></head><body><a href="/#workspace">Explore the demo</a><script src="/_astro/site.js"></script></body></html>`
+  )
   const pages = {
     [`${config.site_url}/`]: [200, html, "text/html"],
     [`${config.site_url}/release.json`]: [

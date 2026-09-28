@@ -28,11 +28,6 @@ output "github_deploy_role_arn" {
   value       = one(aws_iam_role.github_deploy[*].arn)
 }
 
-output "terraform_plan_role_arn" {
-  description = "Repository variable AWS_TERRAFORM_PLAN_ROLE_ARN of the Terraform workflow."
-  value       = one(aws_iam_role.github_plan[*].arn)
-}
-
 output "github_config_role_arn" {
   description = "Repository variable AWS_CONFIG_ROLE_ARN; read-only SSM access for main's settings and monitor jobs."
   value       = one(aws_iam_role.github_config[*].arn)

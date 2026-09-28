@@ -21,6 +21,6 @@ for env in dev staging prod; do
 done
 terraform -chdir="$work" plan -input=false -refresh=false -lock=false -compact-warnings \
   -var offline_validation=true -var-file=envs/prod/prod.tfvars -var enable_dns=true \
-  -var github_repository=owner/mvp-landing -var github_owner_id=1 -var github_repository_id=2 \
-  -var tf_state_bucket=offline-state > "$work/plan-full.log" || { cat "$work/plan-full.log"; exit 1; }
+  -var github_repository=owner/mvp-landing -var github_owner_id=1 \
+  -var github_repository_id=2 > "$work/plan-full.log" || { cat "$work/plan-full.log"; exit 1; }
 grep 'Plan:' "$work/plan-full.log"

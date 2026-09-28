@@ -29,6 +29,29 @@ test("the home page has no detectable accessibility violations", async ({
   ).toEqual([])
 })
 
+test("CSP permits the shipped scripts but blocks injected inline code", async ({
+  page
+}) => {
+  const violations: string[] = []
+  page.on("console", (message) => {
+    if (message.text().includes("Content Security Policy"))
+      violations.push(message.text())
+  })
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto("/")
+  await page.getByRole("button", { name: "Open navigation" }).click()
+  await expect(page.getByRole("dialog")).toBeVisible()
+  expect(violations).toEqual([])
+  await page.evaluate(() => {
+    const script = document.createElement("script")
+    script.textContent = "window.__injectedScriptRan = true"
+    document.body.append(script)
+  })
+  expect(
+    await page.evaluate(() => Reflect.has(window, "__injectedScriptRan"))
+  ).toBe(false)
+})
+
 for (const { name, url } of [
   { name: /try it live/i, url: `${APP_ORIGIN}/login?mode=sign-up` },
   { name: /^sign in$/i, url: `${APP_ORIGIN}/login` }

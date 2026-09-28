@@ -1,6 +1,7 @@
 import assert from "node:assert/strict"
 import { createHash } from "node:crypto"
 import { readdir, readFile, lstat, writeFile } from "node:fs/promises"
+import { isIP } from "node:net"
 import { join } from "node:path"
 
 export function httpsOrigin(value, name) {
@@ -15,7 +16,10 @@ export function httpsOrigin(value, name) {
   )
   assert(
     url.hostname.includes(".") &&
+      !isIP(url.hostname) &&
       !url.hostname.endsWith(".localhost") &&
+      !url.hostname.endsWith(".local") &&
+      !url.hostname.endsWith(".internal") &&
       url.hostname !== "localhost",
     `${name} must be a public hostname`
   )

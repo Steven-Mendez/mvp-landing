@@ -2,32 +2,21 @@ variables {
   environment          = "prod"
   offline_validation   = true
   github_repository    = "owner/mvp-landing"
-  tf_state_bucket      = "test-state"
   github_owner_id      = 1
   github_repository_id = 2
 }
 
-run "lock_is_readable_and_only_lock_is_writable" {
+run "config_role_is_read_only" {
   command = plan
 
   assert {
-    condition = alltrue([
-      for action in ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"] :
-      contains(one([
-        for statement in data.aws_iam_policy_document.github_plan.statement : statement.actions
-        if statement.sid == "StateLock"
-      ]), action)
-    ])
-    error_message = "The S3 backend needs read/write/delete on its lock."
+    condition     = toset(keys(data.aws_iam_policy_document.github_trust)) == toset(["deploy", "config"])
+    error_message = "Never grant pull request jobs an AWS role."
   }
 
   assert {
-    condition = alltrue([
-      for statement in data.aws_iam_policy_document.github_plan.statement :
-      statement.resources == toset(["arn:aws:s3:::test-state/mvp-landing/prod/terraform.tfstate.tflock"])
-      if contains(statement.actions, "s3:PutObject") || contains(statement.actions, "s3:DeleteObject")
-    ])
-    error_message = "A plan must not write state, application objects, or another stack's lock."
+    condition     = toset(local.github_subject_prefixes) == toset(["repo:owner@1/mvp-landing@2"])
+    error_message = "Trust only immutable repository ID subjects, never the recyclable name."
   }
 
   assert {
